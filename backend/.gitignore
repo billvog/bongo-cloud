@@ -1,0 +1,9 @@
+# python stuff
+__pycache__
+venv
+
+# there are files uploaded by users
+bongocloudapi/bongo-storage/*
+
+# misc
+.DS_Store
