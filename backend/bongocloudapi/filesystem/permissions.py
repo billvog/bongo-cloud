@@ -19,3 +19,6 @@ class IsOwner(permissions.BasePermission):
 	
 	def does_user_has_permission(self, request: Request, fsitem: FilesystemItem) -> bool:
 		return request.user == fsitem.owner
+
+class FilesystemOwnerPermissionsMixin():
+	permission_classes = [permissions.IsAuthenticated, IsOwner]

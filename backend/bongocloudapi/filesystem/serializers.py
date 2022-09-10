@@ -3,7 +3,22 @@ from rest_framework import serializers
 from .models import FilesystemItem
 
 class FilesystemItemSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = FilesystemItem
+		fields = [
+			'id',
+			'parent',
+			'name',
+			'is_file',
+			'size',
+			'path',
+			'uploaded_file',
+		]
+
+class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 	name = serializers.CharField(allow_blank=True)
+	is_file = serializers.BooleanField(read_only=True)
+	filesize = serializers.IntegerField(read_only=True)
 
 	class Meta:
 		model = FilesystemItem
@@ -13,8 +28,6 @@ class FilesystemItemSerializer(serializers.ModelSerializer):
 			'name',
 			'is_file',
 			'filesize',
-			'size',
-			'path',
 			'uploaded_file',
 		]
 

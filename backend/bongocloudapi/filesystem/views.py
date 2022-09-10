@@ -1,16 +1,15 @@
-from rest_framework import permissions, status
-from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import FilesystemItem
-from .serializers import FilesystemItemSerializer
-from .permissions import IsOwner
+from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer
+from .permissions import FilesystemOwnerPermissionsMixin
 
-class FilesystemItemListCreateAPIView(ListCreateAPIView):
+class FilesystemItemListAPIView(ListAPIView, FilesystemOwnerPermissionsMixin):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
-	permission_classes = [permissions.IsAuthenticated, IsOwner]
 
 	def list(self, request, *args, **kwargs):
 		if 'pk' in kwargs:
@@ -38,7 +37,10 @@ class FilesystemItemListCreateAPIView(ListCreateAPIView):
 
 		return qs
 
-	def create(self, request, *args, **kwargs):
+class FilesystemCreateAPIView(CreateAPIView, FilesystemOwnerPermissionsMixin):
+	serializer_class = CreateFilesystemItemSerializer
+
+	def post(self, request, *args, **kwargs):
 		serializer = self.get_serializer(data=request.data)
 		data = serializer.initial_data
 
@@ -49,11 +51,7 @@ class FilesystemItemListCreateAPIView(ListCreateAPIView):
 				return Response(None, status=401)
 
 		serializer.is_valid(raise_exception=True)
-		self.perform_create(serializer)
-		headers = self.get_success_headers(serializer.data)
-		return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-	def perform_create(self, serializer):
+		
 		data = serializer.validated_data
 		user = self.request.user
 
@@ -67,13 +65,14 @@ class FilesystemItemListCreateAPIView(ListCreateAPIView):
 			is_file = True
 			filesize = uploaded_file.size
 
-		serializer.save(owner=user, name=name, is_file=is_file, filesize=filesize)
+		created_item = serializer.save(owner=user, name=name, is_file=is_file, filesize=filesize)
 
-filesystem_item_list_create_api_view = FilesystemItemListCreateAPIView.as_view()
+		serialized_item = FilesystemItemSerializer(created_item, context=self.get_serializer_context()).data
 
-class FilesystemItemRetrieveDestroyAPIView(RetrieveDestroyAPIView):
+		headers = self.get_success_headers(serialized_item)
+		return Response(serialized_item, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class FilesystemItemRetrieveDestroyAPIView(RetrieveDestroyAPIView, FilesystemOwnerPermissionsMixin):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
-	permission_classes = [permissions.IsAuthenticated, IsOwner]
-
-filesystem_item_retrieve_destroy_api_view = FilesystemItemRetrieveDestroyAPIView.as_view()
