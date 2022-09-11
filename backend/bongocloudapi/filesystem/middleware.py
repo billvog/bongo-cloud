@@ -34,10 +34,11 @@ class ServeUserUploadsMiddleware:
 					}, status=401)
 
 				response = serve(request, path=path, document_root=self.MEDIA_ROOT)
-				response['Content-Disposition'] = f'attachment; filename="{file.name}"'
+				response['Content-Disposition'] = f'inline; filename="{file.name}"'
 				response['Content-Length'] = str(file.filesize)
 				return response
-		except Exception:
+		except Exception as error:
+			print('Error:', error)
 			return JsonResponse({
 					'error': "The requested file does not appear to be on our servers. We are terribly sorry 😢"
 				}, status=404)

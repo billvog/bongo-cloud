@@ -1,3 +1,4 @@
+import { FilesystemItem } from "../types";
 import { isJwtTokenExpired } from "../utils/jwt-expiration";
 import {
   clearAuthTokens,
@@ -83,4 +84,55 @@ export const api = async <Data = any>(
     data,
     headers: resHeaders,
   };
+};
+
+export const apiDownloadFile = async (item: FilesystemItem) => {
+  let accessToken = getAccessToken();
+  let refreshToken = getRefreshToken();
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  try {
+    if (refreshToken) {
+      if (!accessToken || isJwtTokenExpired(accessToken)) {
+        const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
+          method: "POST",
+          body: JSON.stringify({ refresh: refreshToken }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.status !== 200) {
+          throw new Error();
+        }
+
+        const refreshResponse = await response.json();
+        accessToken = setAccessToken(refreshResponse.access);
+      }
+    }
+  } catch {
+    clearAuthTokens();
+  }
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(item.uploaded_file, {
+    method: "GET",
+    headers,
+  });
+
+  const blob = await response.blob();
+
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = item.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 };

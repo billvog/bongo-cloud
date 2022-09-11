@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
                 title: "Logged in!",
                 message: (
                   <div>
-                    You have been logged in as
+                    You have been logged in as{" "}
                     <span className="font-bold underline">
                       {response.data.user.username}
                     </span>
