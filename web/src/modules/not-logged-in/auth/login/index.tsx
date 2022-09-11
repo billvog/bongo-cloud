@@ -3,6 +3,7 @@ import { useForm } from "@mantine/form";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiErrorUpdateNotification } from "../../../../utils/api-error-update-notification";
 import { api } from "../../../api";
 import { useAuth } from "../../../auth-context";
 
@@ -35,40 +36,43 @@ export const LoginPage: React.FC = () => {
             loading: true,
           });
 
-          const response = await api("/auth/login/", "POST", values);
+          api("/auth/login/", "POST", values)
+            .then((response) => {
+              if (response.status !== 200) {
+                updateNotification({
+                  id: login_notif_id,
+                  title: "Invalid login",
+                  message: response.data.detail,
+                  color: "red",
+                  loading: false,
+                });
 
-          // login failed
-          if (response.status !== 200) {
-            updateNotification({
-              id: login_notif_id,
-              title: "Invalid login",
-              message: response.data.detail,
-              color: "red",
-              loading: false,
+                return;
+              }
+
+              auth.setUser(response.data.user);
+
+              updateNotification({
+                id: login_notif_id,
+                title: "Logged in!",
+                message: (
+                  <div>
+                    You have been logged in as
+                    <span className="font-bold underline">
+                      {response.data.user.username}
+                    </span>
+                    ! Redirecting you...
+                  </div>
+                ),
+                color: "blue",
+                loading: false,
+              });
+
+              navigate("/app");
+            })
+            .catch(() => {
+              apiErrorUpdateNotification(login_notif_id);
             });
-
-            return;
-          }
-
-          auth.setUser(response.data.user);
-
-          updateNotification({
-            id: login_notif_id,
-            title: "Logged in!",
-            message: (
-              <div>
-                You have been logged in as
-                <span className="font-bold underline">
-                  {response.data.user.username}
-                </span>
-                ! Redirecting you...
-              </div>
-            ),
-            color: "blue",
-            loading: false,
-          });
-
-          navigate("/app");
         })}
       >
         <div

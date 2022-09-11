@@ -28,21 +28,23 @@ export const api = async <Data = any>(
     "Content-Type": "application/json",
   };
 
-  if (refreshToken) {
-    if (!accessToken || isJwtTokenExpired(accessToken)) {
-      const refreshResponse = await (
-        await fetch(API_BASE_URL + "/auth/refresh-token/", {
-          method: "POST",
-          body: JSON.stringify({ refresh: refreshToken }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-      ).json();
+  try {
+    if (refreshToken) {
+      if (!accessToken || isJwtTokenExpired(accessToken)) {
+        const refreshResponse = await (
+          await fetch(API_BASE_URL + "/auth/refresh-token/", {
+            method: "POST",
+            body: JSON.stringify({ refresh: refreshToken }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+        ).json();
 
-      accessToken = setAccessToken(refreshResponse.access);
+        accessToken = setAccessToken(refreshResponse.access);
+      }
     }
-  }
+  } catch {}
 
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
