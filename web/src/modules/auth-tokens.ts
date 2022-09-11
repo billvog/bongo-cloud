@@ -17,3 +17,8 @@ export const getRefreshToken = (): string => {
 export const setRefreshToken = (t: string) => {
   localStorage.setItem(REFRESH_TOKEN_KEY, t);
 };
+
+export const clearAuthTokens = () => {
+  setAccessToken("");
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};

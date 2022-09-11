@@ -38,7 +38,7 @@ export const LoginPage: React.FC = () => {
 
           api("/auth/login/", "POST", values)
             .then((response) => {
-              if (response.status !== 200) {
+              if (!response.ok) {
                 updateNotification({
                   id: login_notif_id,
                   title: "Invalid login",

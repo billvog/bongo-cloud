@@ -3,6 +3,7 @@ import { useForm } from "@mantine/form";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiErrorUpdateNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api } from "../../../api";
 import { useAuth } from "../../../auth-context";
@@ -47,41 +48,44 @@ export const RegisterPage: React.FC = () => {
             loading: true,
           });
 
-          const response = await api("/auth/register/", "POST", values);
+          api("/auth/register/", "POST", values)
+            .then((response) => {
+              if (!response.ok) {
+                form.setErrors(formatApiErrors(response.data));
+                updateNotification({
+                  id: register_notif_id,
+                  title: "Registration failed",
+                  message: "Ensure all fields are correctly filled.",
+                  color: "red",
+                  loading: false,
+                });
 
-          // register failed
-          if (response.status !== 200) {
-            form.setErrors(formatApiErrors(response.data));
-            updateNotification({
-              id: register_notif_id,
-              title: "Registration failed",
-              message: "Ensure all fields are correctly filled.",
-              color: "red",
-              loading: false,
+                return;
+              }
+
+              auth.setUser(response.data.user);
+
+              updateNotification({
+                id: register_notif_id,
+                title: "Logged in!",
+                message: (
+                  <div>
+                    You have been logged in as
+                    <span className="font-bold underline">
+                      {response.data.user.username}
+                    </span>
+                    ! Redirecting you...
+                  </div>
+                ),
+                color: "blue",
+                loading: false,
+              });
+
+              navigate("/app");
+            })
+            .catch(() => {
+              apiErrorUpdateNotification(register_notif_id);
             });
-
-            return;
-          }
-
-          auth.setUser(response.data.user);
-
-          updateNotification({
-            id: register_notif_id,
-            title: "Logged in!",
-            message: (
-              <div>
-                You have been logged in as
-                <span className="font-bold underline">
-                  {response.data.user.username}
-                </span>
-                ! Redirecting you...
-              </div>
-            ),
-            color: "blue",
-            loading: false,
-          });
-
-          navigate("/app");
         })}
       >
         <div

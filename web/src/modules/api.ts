@@ -1,5 +1,6 @@
 import { isJwtTokenExpired } from "../utils/jwt-expiration";
 import {
+  clearAuthTokens,
   getAccessToken,
   getRefreshToken,
   setAccessToken,
@@ -12,6 +13,7 @@ type Method = "GET" | "POST";
 
 type APIResponse<Data> = {
   status: number;
+  ok: boolean;
   data: Data;
   headers: Headers;
 };
@@ -31,20 +33,25 @@ export const api = async <Data = any>(
   try {
     if (refreshToken) {
       if (!accessToken || isJwtTokenExpired(accessToken)) {
-        const refreshResponse = await (
-          await fetch(API_BASE_URL + "/auth/refresh-token/", {
-            method: "POST",
-            body: JSON.stringify({ refresh: refreshToken }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-        ).json();
+        const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
+          method: "POST",
+          body: JSON.stringify({ refresh: refreshToken }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
+        if (response.status !== 200) {
+          throw new Error();
+        }
+
+        const refreshResponse = await response.json();
         accessToken = setAccessToken(refreshResponse.access);
       }
     }
-  } catch {}
+  } catch {
+    clearAuthTokens();
+  }
 
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
@@ -72,6 +79,7 @@ export const api = async <Data = any>(
 
   return {
     status: response.status,
+    ok: response.status >= 200 && response.status < 300,
     data,
     headers: resHeaders,
   };
