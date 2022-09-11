@@ -5,7 +5,6 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../../api";
 import { useAuth } from "../../../auth-context";
-import { setAccessToken, setRefreshToken } from "../../../auth-tokens";
 
 export const LoginPage: React.FC = () => {
   const form = useForm({
@@ -51,26 +50,7 @@ export const LoginPage: React.FC = () => {
             return;
           }
 
-          // login worked
-          setAccessToken(response.data.access);
-          setRefreshToken(response.data.refresh);
-
-          const userResponse = await api("/auth/me/", "GET");
-
-          // something went wrong
-          if (userResponse.status !== 200) {
-            updateNotification({
-              id: login_notif_id,
-              title: "Something went wrong 😑",
-              message: "Something went terribly wrong.",
-              color: "red",
-              loading: false,
-            });
-            return;
-          }
-
-          // TODO: store user in state...
-          auth.setUser(userResponse.data.user);
+          auth.setUser(response.data.user);
 
           updateNotification({
             id: login_notif_id,
@@ -79,7 +59,7 @@ export const LoginPage: React.FC = () => {
               <div>
                 You have been logged in as
                 <span className="font-bold underline">
-                  {userResponse.data.user.username}
+                  {response.data.user.username}
                 </span>
                 ! Redirecting you...
               </div>

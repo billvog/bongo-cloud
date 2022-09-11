@@ -1,13 +1,19 @@
 import { isJwtTokenExpired } from "../utils/jwt-expiration";
-import { getAccessToken, getRefreshToken, setAccessToken } from "./auth-tokens";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "./auth-tokens";
 
 const API_BASE_URL = "http://localhost:8000";
 
 type Method = "GET" | "POST";
 
 type APIResponse<Data> = {
-  data: Data;
   status: number;
+  data: Data;
+  headers: Headers;
 };
 
 export const api = async <Data = any>(
@@ -49,9 +55,22 @@ export const api = async <Data = any>(
   });
 
   const data = await response.json();
+  const resHeaders = response.headers;
+
+  // update tokens
+  const newAccessToken = resHeaders.get("x-access-token");
+  if (newAccessToken) {
+    setAccessToken(newAccessToken);
+  }
+
+  const newRefreshToken = resHeaders.get("x-refresh-token");
+  if (newRefreshToken) {
+    setRefreshToken(newRefreshToken);
+  }
 
   return {
-    data,
     status: response.status,
+    data,
+    headers: resHeaders,
   };
 };

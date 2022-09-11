@@ -1,7 +1,11 @@
 import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { formatApiErrors } from "../../../../utils/format-api-errors";
+import { api } from "../../../api";
+import { useAuth } from "../../../auth-context";
 
 export const RegisterPage: React.FC = () => {
   const form = useForm({
@@ -19,17 +23,65 @@ export const RegisterPage: React.FC = () => {
         value.length < 2 ? "Length must be at least 2 characters." : null,
       username: (value) =>
         value.length < 3 ? "Length must be at least 3 characters." : null,
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email."),
+      email: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Invalid email format.",
       password: (value) =>
         value.length < 6 ? "Length must be at least 6 characters." : null,
     },
   });
 
+  const auth = useAuth();
+  const navigate = useNavigate();
+
   return (
     <div className="clouded-bg-container">
       <form
-        onSubmit={form.onSubmit((values) => {
-          console.log(values);
+        onSubmit={form.onSubmit(async (values) => {
+          const register_notif_id = "register-notification";
+
+          showNotification({
+            id: register_notif_id,
+            title: "Please wait...",
+            message: undefined,
+            color: "gray",
+            loading: true,
+          });
+
+          const response = await api("/auth/register/", "POST", values);
+
+          // register failed
+          if (response.status !== 200) {
+            form.setErrors(formatApiErrors(response.data));
+            updateNotification({
+              id: register_notif_id,
+              title: "Registration failed",
+              message: "Ensure all fields are correctly filled.",
+              color: "red",
+              loading: false,
+            });
+
+            return;
+          }
+
+          auth.setUser(response.data.user);
+
+          updateNotification({
+            id: register_notif_id,
+            title: "Logged in!",
+            message: (
+              <div>
+                You have been logged in as
+                <span className="font-bold underline">
+                  {response.data.user.username}
+                </span>
+                ! Redirecting you...
+              </div>
+            ),
+            color: "blue",
+            loading: false,
+          });
+
+          navigate("/app");
         })}
       >
         <div

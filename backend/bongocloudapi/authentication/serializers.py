@@ -13,6 +13,17 @@ class UserSerializer(serializers.ModelSerializer):
 			'date_joined'
 		]
 
+class LoginUserSerializer(serializers.ModelSerializer):
+	username = serializers.CharField(min_length=3, max_length=50)
+	password = serializers.CharField(write_only=True, min_length=6, max_length=150)
+
+	class Meta:
+		model = User
+		fields = [
+			'username',
+			'password'
+		]
+
 class RegisterUserSerializer(serializers.ModelSerializer):
 	first_name = serializers.CharField(min_length=2, max_length=50)
 	last_name = serializers.CharField(min_length=2, max_length=50)
@@ -30,17 +41,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 			'password'
 		]
 
-	def validate(self, args):
-		username = args.get('username', None)
-		email = args.get('email', None)
-
-		if User.objects.all().filter(username=username).exists():
+	def validate_username(self, value):
+		if User.objects.all().filter(username=value).exists():
 			raise serializers.ValidationError('Username already in use.')
+		return value
 
-		if User.objects.all().filter(email=email).exists():
+	def validate_email(self, value):
+		if User.objects.all().filter(email=value).exists():
 			raise serializers.ValidationError('Email already used.')
-
-		return super().validate(args)
+		return value
 	
 	def create(self, validated_data):
 		return User.objects.create_user(**validated_data)

@@ -137,6 +137,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Cors
 CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+CORS_EXPOSE_HEADERS = [
+    'x-access-token',
+    'x-refresh-token'
+]
 
 # Django Rest Framework
 REST_FRAMEWORK = {
