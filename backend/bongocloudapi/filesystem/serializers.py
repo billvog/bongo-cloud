@@ -33,7 +33,7 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 
 	def validate_name(self, value):
 		if not value and self.initial_data['uploaded_file'] is None:
-			raise serializers.ValidationError('Name is needed')
+			raise serializers.ValidationError('This field is required.')
 		return value
 
 	def validate_parent(self, value):

@@ -79,6 +79,7 @@ export const api = async <Data = any>(
       }
     } else {
       requestBody = JSON.stringify(body);
+      headers["Content-Type"] = "application/json";
     }
   }
 

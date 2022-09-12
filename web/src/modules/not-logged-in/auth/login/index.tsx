@@ -3,7 +3,7 @@ import { useForm } from "@mantine/form";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiErrorUpdateNotification } from "../../../../utils/api-error-update-notification";
+import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { api } from "../../../api";
 import { useAuth } from "../../../auth-context";
 
@@ -71,7 +71,7 @@ export const LoginPage: React.FC = () => {
               navigate("/app");
             })
             .catch(() => {
-              apiErrorUpdateNotification(login_notif_id);
+              apiErrorNotification(login_notif_id);
             });
         })}
       >

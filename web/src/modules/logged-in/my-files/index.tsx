@@ -1,12 +1,14 @@
-import { Button } from "@mantine/core";
+import { ActionIcon, Button } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
+import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
 import { FilesystemItem } from "../../../types";
 import { api, apiDownloadFile } from "../../api";
 import { useAuth } from "../../auth-context";
 import { FilesystemItemComponent } from "../components/filesystem-item";
 import { Layout } from "../layout";
+import { CreateFolderModal } from "./create-folder-modal";
 import { UploadFileModal } from "./upload-file-modal";
 
 export const MyFilesPage: React.FC = () => {
@@ -14,6 +16,7 @@ export const MyFilesPage: React.FC = () => {
   const [items, setItems] = useState<FilesystemItem[]>([]);
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
 
   useEffect(() => {
     let url = "/filesystem/";
@@ -49,28 +52,44 @@ export const MyFilesPage: React.FC = () => {
       <>
         <div className="flex flex-col h-full">
           <div className="flex-1 flex flex-col">
-            <div className="flex flex-row items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600 space-x-4">
-              <IoMdArrowBack
-                size={20}
-                className={`${
-                  currentItem ? "text-gray-600 cursor-pointer" : "text-gray-300"
-                }`}
-                onClick={goBack}
-              />
-              <div>
-                {(currentItem ? currentItem.path + "/" : "/")
-                  .slice(1)
-                  .split("/")
-                  .map((e) => {
-                    return (
-                      <span key={e}>
-                        <span className="font-bold mx-1 cursor-default">/</span>
-                        <span className="cursor-pointer hover:underline">
-                          {e}
+            <div className="flex flex-row justify-between items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600">
+              <div className="flex items-center space-x-4">
+                <IoMdArrowBack
+                  size={20}
+                  className={`${
+                    currentItem
+                      ? "text-gray-600 cursor-pointer"
+                      : "text-gray-300"
+                  }`}
+                  onClick={goBack}
+                />
+                <div>
+                  {(currentItem ? currentItem.path + "/" : "/")
+                    .slice(1)
+                    .split("/")
+                    .map((e) => {
+                      return (
+                        <span key={e}>
+                          <span className="font-bold mx-1 cursor-default">
+                            /
+                          </span>
+                          <span className="cursor-pointer hover:underline">
+                            {e}
+                          </span>
                         </span>
-                      </span>
-                    );
-                  })}
+                      );
+                    })}
+                </div>
+              </div>
+              <div>
+                <ActionIcon
+                  color="red"
+                  variant="subtle"
+                  title="Create folder"
+                  onClick={() => setCreateFolderModalOpen(true)}
+                >
+                  <BsFolderPlus size={18} />
+                </ActionIcon>
               </div>
             </div>
             <div className="flex flex-col">
@@ -99,6 +118,10 @@ export const MyFilesPage: React.FC = () => {
         <UploadFileModal
           isOpen={uploadModalOpen}
           onClose={() => setUploadModalOpen(false)}
+        />
+        <CreateFolderModal
+          isOpen={createFolderModalOpen}
+          onClose={() => setCreateFolderModalOpen(false)}
         />
       </>
     </Layout>

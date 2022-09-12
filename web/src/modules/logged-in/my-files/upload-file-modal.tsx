@@ -5,7 +5,7 @@ import React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { BsFileEarmarkArrowUp } from "react-icons/bs";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { apiErrorUpdateNotification } from "../../../utils/api-error-update-notification";
+import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { api } from "../../api";
 
 interface UploadFileModalProps {
@@ -42,7 +42,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
     )
       .then((result) => {
         if (!result.ok) {
-          apiErrorUpdateNotification(
+          apiErrorNotification(
             upload_file_notif,
             `Failed to upload "${file.name}". Please try again later.`
           );
@@ -59,7 +59,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
       })
       .catch((error) => {
         console.log(error);
-        apiErrorUpdateNotification(upload_file_notif);
+        apiErrorNotification(upload_file_notif);
       });
   };
 
