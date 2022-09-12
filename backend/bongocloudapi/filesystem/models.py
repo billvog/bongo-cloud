@@ -16,6 +16,8 @@ class FilesystemItem(models.Model):
 	filesize = models.PositiveBigIntegerField(default=0)
 	is_file = models.BooleanField()
 	uploaded_file = models.FileField(upload_to=user_directory_path, null=True, blank=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
 		return self.name

@@ -8,7 +8,7 @@ from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerialize
 from .permissions import FilesystemOwnerPermissionsMixin
 
 class FilesystemItemListAPIView(ListAPIView, FilesystemOwnerPermissionsMixin):
-	queryset = FilesystemItem.objects.all()
+	queryset = FilesystemItem.objects.all().order_by('is_file', 'name', '-created_at')
 	serializer_class = FilesystemItemSerializer
 
 	def list(self, request, *args, **kwargs):
