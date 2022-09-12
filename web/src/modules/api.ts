@@ -19,21 +19,18 @@ type APIResponse<Data> = {
   headers: Headers;
 };
 
-export const api = async <Data = any>(
-  url: string,
-  method: Method = "GET",
-  body: any = null
-): Promise<APIResponse<Data>> => {
+type APIRequestOptions = {
+  sendAsFormData: boolean;
+};
+
+const apiRefreshTokenIfNeeded = async (): Promise<string> => {
   let accessToken = getAccessToken();
   let refreshToken = getRefreshToken();
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
 
   try {
     if (refreshToken) {
       if (!accessToken || isJwtTokenExpired(accessToken)) {
+        console.log("invalid token, refreshing...");
         const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
           method: "POST",
           body: JSON.stringify({ refresh: refreshToken }),
@@ -54,13 +51,40 @@ export const api = async <Data = any>(
     clearAuthTokens();
   }
 
+  return accessToken;
+};
+
+export const api = async <Data = any>(
+  url: string,
+  method: Method = "GET",
+  body: object | null = null,
+  options: APIRequestOptions = {
+    sendAsFormData: false,
+  }
+): Promise<APIResponse<Data>> => {
+  let accessToken = await apiRefreshTokenIfNeeded();
+
+  const headers: HeadersInit = {};
+
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
+  let requestBody: FormData | string | undefined = undefined;
+  if (body) {
+    if (options.sendAsFormData) {
+      requestBody = new FormData();
+      for (const [key, value] of Object.entries(body)) {
+        requestBody.append(key, value || "");
+      }
+    } else {
+      requestBody = JSON.stringify(body);
+    }
+  }
+
   const response = await fetch(API_BASE_URL + url, {
     method,
-    body: body ? JSON.stringify(body) : undefined,
+    body: requestBody,
     headers,
   });
 
@@ -87,41 +111,18 @@ export const api = async <Data = any>(
 };
 
 export const apiDownloadFile = async (item: FilesystemItem) => {
-  let accessToken = getAccessToken();
-  let refreshToken = getRefreshToken();
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  try {
-    if (refreshToken) {
-      if (!accessToken || isJwtTokenExpired(accessToken)) {
-        const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
-          method: "POST",
-          body: JSON.stringify({ refresh: refreshToken }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.status !== 200) {
-          throw new Error();
-        }
-
-        const refreshResponse = await response.json();
-        accessToken = setAccessToken(refreshResponse.access);
-      }
-    }
-  } catch {
-    clearAuthTokens();
+  if (!item.is_file) {
+    return;
   }
 
+  let accessToken = await apiRefreshTokenIfNeeded();
+
+  const headers: HeadersInit = {};
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(item.uploaded_file, {
+  const response = await fetch(item.uploaded_file!, {
     method: "GET",
     headers,
   });

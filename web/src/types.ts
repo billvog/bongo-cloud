@@ -9,10 +9,10 @@ export type User = {
 
 export type FilesystemItem = {
   id: string;
-  parent: FilesystemItem;
+  parent: FilesystemItem | null;
   name: string;
   is_file: boolean;
   size: number;
   path: string;
-  uploaded_file: string;
+  uploaded_file: string | null;
 };
