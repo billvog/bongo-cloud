@@ -19,8 +19,16 @@ class IsOwner(permissions.BasePermission):
 		return self.does_user_has_permission(request, obj)
 	
 	def does_user_has_permission(self, request: Request, fsitem: FilesystemItem) -> bool:
-		(user, _) = JWTAuthentication().authenticate(request)
-		return request.user == fsitem.owner or user == fsitem.owner
+		user = None
+		try:
+			(user, _) = JWTAuthentication().authenticate(request)
+		except Exception as error:
+			print(error)
+
+		if user is not None:
+			return user == fsitem.owner
+		else:
+			return request.user == fsitem.owner
 
 class FilesystemOwnerPermissionsMixin():
 	permission_classes = [permissions.IsAuthenticated, IsOwner]

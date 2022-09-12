@@ -90,7 +90,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
           }}
           maxSize={1024 * 1024 * 1024 * 5} // 5GB
         >
-          <div className="flex flex-col justify-center items-center space-y-6 px-3 py-2">
+          <div className="flex flex-col justify-center items-center space-y-6 p-3">
             <Dropzone.Accept>
               <AiOutlineCloudUpload size={50} stroke="1.5" />
             </Dropzone.Accept>
@@ -100,7 +100,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
             <Dropzone.Idle>
               <BsFileEarmarkArrowUp size={50} stroke="1.5" />
             </Dropzone.Idle>
-            <div>
+            <div className="space-y-1">
               <div className="font-bold text-lg">
                 Drag files here or click to select files.
               </div>

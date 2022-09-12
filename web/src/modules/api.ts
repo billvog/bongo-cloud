@@ -10,7 +10,7 @@ import {
 
 const API_BASE_URL = "http://localhost:8000";
 
-type Method = "GET" | "POST";
+type Method = "GET" | "POST" | "DELETE" | "UPDATE" | "PUT" | "PATCH";
 
 type APIResponse<Data> = {
   status: number;
@@ -30,7 +30,6 @@ const apiRefreshTokenIfNeeded = async (): Promise<string> => {
   try {
     if (refreshToken) {
       if (!accessToken || isJwtTokenExpired(accessToken)) {
-        console.log("invalid token, refreshing...");
         const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
           method: "POST",
           body: JSON.stringify({ refresh: refreshToken }),
@@ -70,7 +69,7 @@ export const api = async <Data = any>(
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  let requestBody: FormData | string | undefined = undefined;
+  let requestBody: FormData | string | null = null;
   if (body) {
     if (options.sendAsFormData) {
       requestBody = new FormData();
@@ -89,7 +88,7 @@ export const api = async <Data = any>(
     headers,
   });
 
-  const data = await response.json();
+  const data = method === "DELETE" ? null : await response.json();
   const resHeaders = response.headers;
 
   // update tokens

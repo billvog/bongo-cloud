@@ -40,3 +40,27 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 		if value is not None and value.is_file:
 			raise serializers.ValidationError(f'{value.name} is not a folder.')
 		return value
+
+class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = FilesystemItem
+		fields = [
+			'id',
+			'parent',
+			'name',
+		]
+
+	def validate_parent(self, value):
+		if value is None:
+			return value
+
+		request = self.context.get('request')
+		user = request.user
+
+		if not value.owner == user:
+			raise serializers.ValidationError("Parent folder could not be found.")
+
+		if value is not None and value.is_file:
+			raise serializers.ValidationError(f'{value.name} is not a folder.')
+		
+		return value

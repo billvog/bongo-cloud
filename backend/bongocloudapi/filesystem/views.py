@@ -1,13 +1,13 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView, UpdateAPIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import FilesystemItem
-from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer
+from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer, UpdateFilesystemItemSerializer
 from .permissions import FilesystemOwnerPermissionsMixin
 
-class FilesystemItemListAPIView(ListAPIView, FilesystemOwnerPermissionsMixin):
+class FilesystemItemListAPIView(FilesystemOwnerPermissionsMixin, ListAPIView):
 	queryset = FilesystemItem.objects.all().order_by('is_file', 'name', '-created_at')
 	serializer_class = FilesystemItemSerializer
 
@@ -37,7 +37,7 @@ class FilesystemItemListAPIView(ListAPIView, FilesystemOwnerPermissionsMixin):
 
 		return qs
 
-class FilesystemCreateAPIView(CreateAPIView, FilesystemOwnerPermissionsMixin):
+class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 	serializer_class = CreateFilesystemItemSerializer
 
 	def post(self, request, *args, **kwargs):
@@ -48,7 +48,7 @@ class FilesystemCreateAPIView(CreateAPIView, FilesystemOwnerPermissionsMixin):
 		if 'parent' in data and data.get('parent'):
 			parent = get_object_or_404(FilesystemItem, pk=data.get('parent'))
 			if not parent.owner == request.user:
-				return Response(None, status=401)
+				return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 		serializer.is_valid(raise_exception=True)
 		
@@ -73,6 +73,10 @@ class FilesystemCreateAPIView(CreateAPIView, FilesystemOwnerPermissionsMixin):
 		return Response(serialized_item, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class FilesystemItemRetrieveDestroyAPIView(RetrieveDestroyAPIView, FilesystemOwnerPermissionsMixin):
+class FilesystemItemRetrieveDestroyAPIView(FilesystemOwnerPermissionsMixin, RetrieveDestroyAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
+	
+class FilesystemItemUpdateAPIView(FilesystemOwnerPermissionsMixin, UpdateAPIView):
+	queryset = FilesystemItem.objects.all()
+	serializer_class = UpdateFilesystemItemSerializer

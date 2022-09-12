@@ -4,7 +4,8 @@ import { AiOutlineCloudUpload } from "react-icons/ai";
 import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
 import { FilesystemItem } from "../../../types";
-import { api, apiDownloadFile } from "../../api";
+import { apiErrorNotification } from "../../../utils/api-error-update-notification";
+import { api } from "../../api";
 import { useAuth } from "../../auth-context";
 import { FilesystemItemComponent } from "../components/filesystem-item";
 import { Layout } from "../layout";
@@ -24,11 +25,16 @@ export const MyFilesPage: React.FC = () => {
       url += currentItem.id + "/";
     }
 
-    api(url).then((response) => {
-      if (response.ok) {
-        setItems(response.data.items);
-      }
-    });
+    api(url)
+      .then((response) => {
+        if (response.ok) {
+          setItems(response.data.items);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        apiErrorNotification();
+      });
   }, [currentItem]);
 
   const { user } = useAuth();
@@ -36,7 +42,7 @@ export const MyFilesPage: React.FC = () => {
 
   const onItemClicked = async (item: FilesystemItem) => {
     if (item.is_file) {
-      apiDownloadFile(item);
+      // apiDownloadFile(item);
     } else {
       setCurrentItem(item);
     }
@@ -51,7 +57,7 @@ export const MyFilesPage: React.FC = () => {
     <Layout>
       <>
         <div className="flex flex-col h-full">
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col h-full">
             <div className="flex flex-row justify-between items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600">
               <div className="flex items-center space-x-4">
                 <IoMdArrowBack
@@ -92,15 +98,28 @@ export const MyFilesPage: React.FC = () => {
                 </ActionIcon>
               </div>
             </div>
-            <div className="flex flex-col">
-              {items.map((item, index) => (
-                <FilesystemItemComponent
-                  key={item.id}
-                  index={index}
-                  item={item}
-                  onClick={() => onItemClicked(item)}
-                />
-              ))}
+            <div className="flex flex-col h-full">
+              {items.length <= 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <img
+                    alt="empty gif"
+                    src="https://media3.giphy.com/media/giXLnhxp60zEEIkq8K/giphy.gif?cid=ecf05e474q6i7r8wsfv0udn2soyd7rjjz0j83t7wizn6gtca&rid=giphy.gif&ct=g"
+                    width={300}
+                    className="mb-4 select-none"
+                  />
+                  <div className="text-gray-400 text-md font-medium italic">
+                    “This folder is pretty empty.“
+                  </div>
+                </div>
+              ) : (
+                items.map((item) => (
+                  <FilesystemItemComponent
+                    key={item.id}
+                    item={item}
+                    onClick={() => onItemClicked(item)}
+                  />
+                ))
+              )}
             </div>
           </div>
           {/* footer */}
