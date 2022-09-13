@@ -16,14 +16,12 @@ class FilesystemItemSerializer(serializers.ModelSerializer):
 		]
 
 class CreateFilesystemItemSerializer(serializers.ModelSerializer):
-	name = serializers.CharField(allow_blank=True)
 	is_file = serializers.BooleanField(read_only=True)
 	filesize = serializers.IntegerField(read_only=True)
 
 	class Meta:
 		model = FilesystemItem
 		fields = [
-			'id',
 			'parent',
 			'name',
 			'is_file',
@@ -32,8 +30,14 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 		]
 
 	def validate_name(self, value):
-		if not value and self.initial_data['uploaded_file'] is None:
-			raise serializers.ValidationError('This field is required.')
+		name = value
+		parent = self.initial_data['parent']
+		if parent == '':
+			parent = None
+
+		if FilesystemItem.objects.all().filter(parent=parent, name__exact=name).exists():
+			raise serializers.ValidationError(f'"{name}" already exists at this location.')
+			
 		return value
 
 	def validate_parent(self, value):
@@ -49,6 +53,13 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 			'parent',
 			'name',
 		]
+
+	def validate_name(self, value):
+		name = value
+		parent = self.initial_data['parent']
+		if FilesystemItem.objects.all().filter(parent=parent, name__exact=name).exists():
+			raise serializers.ValidationError(f'"{name}" already exists at this location.')
+		return value
 
 	def validate_parent(self, value):
 		if value is None:

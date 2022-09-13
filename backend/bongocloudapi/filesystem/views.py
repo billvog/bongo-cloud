@@ -55,17 +55,15 @@ class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 		data = serializer.validated_data
 		user = self.request.user
 
-		name = data['name']
 		is_file = False
 		filesize = 0
 
 		uploaded_file = data['uploaded_file']
 		if uploaded_file is not None:
-			name = uploaded_file.name
 			is_file = True
 			filesize = uploaded_file.size
 
-		created_item = serializer.save(owner=user, name=name, is_file=is_file, filesize=filesize)
+		created_item = serializer.save(owner=user, is_file=is_file, filesize=filesize)
 
 		serialized_item = FilesystemItemSerializer(created_item, context=self.get_serializer_context()).data
 

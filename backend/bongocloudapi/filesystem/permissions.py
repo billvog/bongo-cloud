@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from django.http import Http404
 from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -9,11 +11,17 @@ In future, add allowed_users column or something, to allow users to share files,
 """
 class IsOwner(permissions.BasePermission):
 	def has_permission(self, request, view):
-		if 'pk' in view.kwargs:
-			filesystem_item = FilesystemItem.objects.get(pk=view.kwargs['pk'])
-			return self.does_user_has_permission(request, filesystem_item)
-		else:
-			return True
+		try:
+			if 'pk' in view.kwargs:
+				filesystem_item = get_object_or_404(FilesystemItem, pk=view.kwargs['pk'])
+				return self.does_user_has_permission(request, filesystem_item)
+		except Http404:
+			pass # in this case, the view is responsible for returning a 404
+		except Exception as error:
+			print(error)
+			return False
+
+		return True
 
 	def has_object_permission(self, request, view, obj):
 		return self.does_user_has_permission(request, obj)
