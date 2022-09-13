@@ -4,6 +4,9 @@ import { BrowserRouter } from "react-router-dom";
 import { NotificationsProvider } from "@mantine/notifications";
 import { AuthProvider } from "./auth-context";
 import { ModalsProvider } from "@mantine/modals";
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
 
 interface ProvidersProps {
   children: JSX.Element;
@@ -11,14 +14,16 @@ interface ProvidersProps {
 
 export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
-    <BrowserRouter>
-      <MantineProvider withGlobalStyles withNormalizeCSS>
-        <ModalsProvider>
-          <NotificationsProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </NotificationsProvider>
-        </ModalsProvider>
-      </MantineProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <MantineProvider withGlobalStyles withNormalizeCSS>
+          <ModalsProvider>
+            <NotificationsProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </NotificationsProvider>
+          </ModalsProvider>
+        </MantineProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };

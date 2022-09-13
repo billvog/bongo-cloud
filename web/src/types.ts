@@ -15,4 +15,11 @@ export type FilesystemItem = {
   size: number;
   path: string;
   uploaded_file: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+export type FilesystemItemEditable = {
+  parent: FilesystemItem | null;
+  name: string;
 };

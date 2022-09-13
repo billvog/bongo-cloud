@@ -12,7 +12,7 @@ const API_BASE_URL = "http://localhost:8000";
 
 type Method = "GET" | "POST" | "DELETE" | "UPDATE" | "PUT" | "PATCH";
 
-type APIResponse<Data> = {
+export type APIResponse<Data = any> = {
   status: number;
   ok: boolean;
   data: Data;

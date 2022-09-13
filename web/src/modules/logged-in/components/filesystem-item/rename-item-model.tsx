@@ -1,11 +1,13 @@
 import { Button, Modal, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import React, { useEffect, useState } from "react";
-import { FilesystemItem } from "../../../../types";
+import React, { useEffect } from "react";
+import { useMutation } from "react-query";
+import { FilesystemItem, FilesystemItemEditable } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
-import { api } from "../../../api";
+import { api, APIResponse } from "../../../api";
+import { useAPICache } from "../../shared-hooks/use-api-cache";
 
 interface RenameItemModalProps {
   item: FilesystemItem;
@@ -27,13 +29,20 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
     },
   });
 
-  const [loading, setLoading] = useState(false);
+  const apiCache = useAPICache();
+  const renameItemMutation = useMutation<
+    APIResponse,
+    any,
+    FilesystemItemEditable
+  >((values) => {
+    return api(`/filesystem/${item.id}/update/`, "PATCH", values);
+  });
 
   useEffect(
     () => {
       // reset state on open
       if (isOpen) {
-        setLoading(false);
+        renameItemMutation.reset();
         form.reset();
         form.setFieldValue("name", item.name);
       }
@@ -54,32 +63,33 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
       <form
         className="flex flex-col space-y-5"
         onSubmit={form.onSubmit((values) => {
-          setLoading(true);
+          renameItemMutation.mutate(
+            {
+              parent: null,
+              name: values.name,
+            },
+            {
+              onSuccess: (data) => {
+                if (!data.ok) {
+                  form.setErrors(formatApiErrors(data.data));
+                  return;
+                }
 
-          api(`/filesystem/${item.id}/update`, "PATCH", {
-            parent: null,
-            name: values.name,
-          })
-            .then((response) => {
-              setLoading(false);
+                apiCache.updateItem(item.id, item.parent, data.data);
 
-              if (!response.ok) {
-                form.setErrors(formatApiErrors(response.data));
-                return;
-              }
-
-              onClose();
-
-              showNotification({
-                title: "Item renamed",
-                message: `"${item.name}" renamed to "${response.data.name}".`,
-                color: "blue",
-              });
-            })
-            .catch((error) => {
-              console.log(error);
-              apiErrorNotification();
-            });
+                onClose();
+                showNotification({
+                  title: "Item renamed",
+                  message: `"${item.name}" renamed to "${data.data.name}".`,
+                  color: "blue",
+                });
+              },
+              onError: (error) => {
+                console.log(error);
+                apiErrorNotification();
+              },
+            }
+          );
         })}
       >
         <div className="relative">
@@ -91,7 +101,12 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
           />
         </div>
         <div className="flex flex-row items-center justify-end space-x-3">
-          <Button compact color="dark" type="submit" loading={loading}>
+          <Button
+            compact
+            color="dark"
+            type="submit"
+            loading={renameItemMutation.isLoading}
+          >
             Rename
           </Button>
           <Button compact variant="default" type="button" onClick={onClose}>

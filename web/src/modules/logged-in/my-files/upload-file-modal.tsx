@@ -5,8 +5,10 @@ import React from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { BsFileEarmarkArrowUp } from "react-icons/bs";
 import { IoMdCloseCircleOutline } from "react-icons/io";
+import { useMutation } from "react-query";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
-import { api } from "../../api";
+import { api, APIResponse } from "../../api";
+import { useAPICache } from "../shared-hooks/use-api-cache";
 
 interface UploadFileModalProps {
   isOpen: boolean;
@@ -17,6 +19,26 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const apiCache = useAPICache();
+  const uploadFileMutation = useMutation<
+    APIResponse,
+    any,
+    { name: string; uploaded_file: Blob }
+  >((values) => {
+    return api(
+      "/filesystem/create/",
+      "POST",
+      {
+        parent: null,
+        name: values.name,
+        uploaded_file: values.uploaded_file,
+      },
+      {
+        sendAsFormData: true,
+      }
+    );
+  });
+
   const uploadFile = (file: FileWithPath) => {
     const upload_file_notif = "upload_file_notif:" + (file.path || file.name);
 
@@ -28,39 +50,34 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
     });
 
     let blob = file as Blob;
-    api(
-      "/filesystem/create",
-      "POST",
+    uploadFileMutation.mutate(
+      { name: file.name, uploaded_file: blob },
       {
-        parent: null,
-        name: file.name,
-        uploaded_file: blob,
-      },
-      {
-        sendAsFormData: true,
-      }
-    )
-      .then((result) => {
-        if (!result.ok) {
-          apiErrorNotification(
-            upload_file_notif,
-            `Failed to upload "${file.name}". Please try again later.`
-          );
-          return;
-        }
+        onSuccess: (data) => {
+          if (!data.ok) {
+            apiErrorNotification(
+              upload_file_notif,
+              `Failed to upload "${file.name}". Please try again later.`
+            );
+            return;
+          }
 
-        updateNotification({
-          id: upload_file_notif,
-          loading: false,
-          title: `Uploaded "${file.name}"!`,
-          message: undefined,
-          color: "blue",
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        apiErrorNotification(upload_file_notif);
-      });
+          apiCache.addItem(data.data);
+
+          updateNotification({
+            id: upload_file_notif,
+            loading: false,
+            title: `Uploaded "${file.name}"!`,
+            message: undefined,
+            color: "blue",
+          });
+        },
+        onError: (error) => {
+          console.log(error);
+          apiErrorNotification(upload_file_notif);
+        },
+      }
+    );
   };
 
   return (

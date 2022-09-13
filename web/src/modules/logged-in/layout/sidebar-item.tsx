@@ -14,7 +14,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = (props) => {
 
   useEffect(() => {
     setIsActive(location.pathname === props.path);
-  }, [location.pathname]);
+  }, [location.pathname, props.path]);
 
   const onClick = () => {
     navigate(props.path);

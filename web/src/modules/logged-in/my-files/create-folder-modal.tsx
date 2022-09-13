@@ -1,11 +1,13 @@
 import { Button, Modal, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { BsFolderPlus } from "react-icons/bs";
+import { useMutation } from "react-query";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../utils/format-api-errors";
-import { api } from "../../api";
+import { api, APIResponse } from "../../api";
+import { useAPICache } from "../shared-hooks/use-api-cache";
 
 interface CreateFolderModalProps {
   isOpen: boolean;
@@ -25,15 +27,25 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
     },
   });
 
-  const [loading, setLoading] = useState(false);
+  const apiCache = useAPICache();
+  const createFolderMutation = useMutation<APIResponse, any, { name: string }>(
+    (values) => {
+      return api("/filesystem/create/", "POST", {
+        parent: null,
+        name: values.name,
+        uploaded_file: null,
+      });
+    }
+  );
 
   useEffect(() => {
     // reset state on open
     if (isOpen) {
-      setLoading(false);
+      createFolderMutation.reset();
       form.reset();
     }
-  }, [isOpen, form]);
+    // eslint-disable-next-line
+  }, [isOpen]);
 
   return (
     <Modal
@@ -47,33 +59,30 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
       <form
         className="flex flex-col space-y-5"
         onSubmit={form.onSubmit((values) => {
-          setLoading(true);
+          createFolderMutation.mutate(
+            { name: values.name },
+            {
+              onSuccess: (data) => {
+                if (!data.ok) {
+                  form.setErrors(formatApiErrors(data.data));
+                  return;
+                }
 
-          api("/filesystem/create", "POST", {
-            parent: null,
-            name: values.name,
-            uploaded_file: null,
-          })
-            .then((response) => {
-              setLoading(false);
+                apiCache.addItem(data.data);
 
-              if (!response.ok) {
-                form.setErrors(formatApiErrors(response.data));
-                return;
-              }
-
-              onClose();
-
-              showNotification({
-                title: "Folder created",
-                message: `Folder "${values.name}" created successfuly!`,
-                color: "blue",
-              });
-            })
-            .catch((error) => {
-              console.log(error);
-              apiErrorNotification();
-            });
+                onClose();
+                showNotification({
+                  title: "Folder created",
+                  message: `Folder "${values.name}" created successfuly!`,
+                  color: "blue",
+                });
+              },
+              onError: (error) => {
+                console.log(error);
+                apiErrorNotification();
+              },
+            }
+          );
         })}
       >
         <div className="relative">
@@ -90,7 +99,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
             color="dark"
             type="submit"
             leftIcon={<BsFolderPlus />}
-            loading={loading}
+            loading={createFolderMutation.isLoading}
           >
             Create
           </Button>

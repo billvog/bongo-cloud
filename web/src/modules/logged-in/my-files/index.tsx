@@ -1,10 +1,10 @@
-import { ActionIcon, Button } from "@mantine/core";
+import { ActionIcon, Button, LoadingOverlay } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
+import { useQuery } from "react-query";
 import { FilesystemItem } from "../../../types";
-import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { api } from "../../api";
 import { useAuth } from "../../auth-context";
 import { FilesystemItemComponent } from "../components/filesystem-item";
@@ -19,31 +19,25 @@ export const MyFilesPage: React.FC = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
 
-  useEffect(() => {
-    let url = "/filesystem/";
-    if (currentItem) {
-      url += currentItem.id + "/";
+  const itemsQuery = useQuery(
+    ["/filesystem", currentItem ? currentItem.id + "/" : null],
+    ({ queryKey }) => {
+      return api(queryKey.join("/"));
     }
+  );
 
-    api(url)
-      .then((response) => {
-        if (response.ok) {
-          setItems(response.data.items);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        apiErrorNotification();
-      });
-  }, [currentItem]);
+  useEffect(() => {
+    if (itemsQuery.isSuccess && itemsQuery.data?.data) {
+      setCurrentItem(itemsQuery.data.data.current);
+      setItems(itemsQuery.data.data.items);
+    }
+  }, [itemsQuery]);
 
   const { user } = useAuth();
   if (!user) return null;
 
   const onItemClicked = async (item: FilesystemItem) => {
-    if (item.is_file) {
-      // apiDownloadFile(item);
-    } else {
+    if (!item.is_file) {
       setCurrentItem(item);
     }
   };
@@ -56,6 +50,9 @@ export const MyFilesPage: React.FC = () => {
   return (
     <Layout>
       <>
+        <div className="relative">
+          <LoadingOverlay visible={itemsQuery.status === "loading"} />
+        </div>
         <div className="flex flex-col h-full">
           <div className="flex-1 flex flex-col h-full">
             <div className="flex flex-row justify-between items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600">
