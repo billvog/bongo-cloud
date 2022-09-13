@@ -9,6 +9,7 @@ import { useMutation } from "react-query";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { api, APIResponse } from "../../api";
 import { useAPICache } from "../../shared-hooks/use-api-cache";
+import { useFilesystem } from "../context/filesystem-context";
 
 interface UploadFileModalProps {
   isOpen: boolean;
@@ -19,17 +20,19 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const filesystem = useFilesystem();
+
   const apiCache = useAPICache();
   const uploadFileMutation = useMutation<
     APIResponse,
     any,
-    { name: string; uploaded_file: Blob }
+    { parent: string | null; name: string; uploaded_file: Blob }
   >((values) => {
     return api(
       "/filesystem/create/",
       "POST",
       {
-        parent: null,
+        parent: values.parent,
         name: values.name,
         uploaded_file: values.uploaded_file,
       },
@@ -51,7 +54,11 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
 
     let blob = file as Blob;
     uploadFileMutation.mutate(
-      { name: file.name, uploaded_file: blob },
+      {
+        parent: filesystem.current?.id || null,
+        name: file.name,
+        uploaded_file: blob,
+      },
       {
         onSuccess: (data) => {
           if (!data.ok) {

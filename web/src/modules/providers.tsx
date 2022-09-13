@@ -5,6 +5,7 @@ import { NotificationsProvider } from "@mantine/notifications";
 import { AuthProvider } from "./auth-context";
 import { ModalsProvider } from "@mantine/modals";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { AuthenticatedProviders } from "./logged-in/authenticated-providers";
 
 const queryClient = new QueryClient();
 
@@ -15,15 +16,17 @@ interface ProvidersProps {
 export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <MantineProvider withGlobalStyles withNormalizeCSS>
-          <ModalsProvider>
-            <NotificationsProvider>
-              <AuthProvider>{children}</AuthProvider>
-            </NotificationsProvider>
-          </ModalsProvider>
-        </MantineProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <AuthenticatedProviders>
+          <BrowserRouter>
+            <MantineProvider withGlobalStyles withNormalizeCSS>
+              <ModalsProvider>
+                <NotificationsProvider>{children}</NotificationsProvider>
+              </ModalsProvider>
+            </MantineProvider>
+          </BrowserRouter>
+        </AuthenticatedProviders>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

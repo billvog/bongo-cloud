@@ -18,8 +18,8 @@ export const Layout: React.FC<LayoutProps> = (props) => {
         <Navbar width={{ base: 300 }}>
           <Navbar.Section>
             <div className="flex flex-col p-4 space-y-2">
-              <SidebarItem path="/app">Home</SidebarItem>
-              <SidebarItem path="/app/files">My Files</SidebarItem>
+              <SidebarItem path="/">Home</SidebarItem>
+              <SidebarItem path="/files">My Files</SidebarItem>
             </div>
           </Navbar.Section>
           <Navbar.Section grow children={<div />} />

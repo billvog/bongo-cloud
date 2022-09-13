@@ -20,9 +20,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const meQuery = useQuery("/auth/me/", ({ queryKey }) =>
-    api(queryKey.join("/"))
-  );
+  const meQuery = useQuery("auth/me", () => api("/auth/me/"));
 
   useEffect(() => {
     if (!meQuery.data) {
@@ -41,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return <ServerErrorPage />;
   }
 
-  if (meQuery.isLoading) {
+  if (meQuery.isLoading || !user) {
     return (
       <LoadingOverlay
         visible={true}

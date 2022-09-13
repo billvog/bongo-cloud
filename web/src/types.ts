@@ -9,7 +9,7 @@ export type User = {
 
 export type FilesystemItem = {
   id: string;
-  parent: FilesystemItem | null;
+  parent: string | null;
   name: string;
   is_file: boolean;
   size: number;
@@ -20,6 +20,6 @@ export type FilesystemItem = {
 };
 
 export type FilesystemItemEditable = {
-  parent: FilesystemItem | null;
+  parent: string | null;
   name: string;
 };

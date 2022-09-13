@@ -8,11 +8,16 @@ import { FilesystemItem } from "../../../types";
 import { api } from "../../api";
 import { useAuth } from "../../auth-context";
 import { FilesystemItemComponent } from "../components/filesystem-item";
+import { useFilesystem } from "../context/filesystem-context";
 import { Layout } from "../layout";
 import { CreateFolderModal } from "./create-folder-modal";
 import { UploadFileModal } from "./upload-file-modal";
 
 export const MyFilesPage: React.FC = () => {
+  const filesystem = useFilesystem();
+
+  const [currentItemId, setCurrentItemId] =
+    useState<FilesystemItem["parent"]>(null);
   const [currentItem, setCurrentItem] = useState<FilesystemItem | null>(null);
   const [items, setItems] = useState<FilesystemItem[]>([]);
 
@@ -20,9 +25,9 @@ export const MyFilesPage: React.FC = () => {
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
 
   const itemsQuery = useQuery(
-    ["/filesystem", currentItem ? currentItem.id + "/" : null],
-    ({ queryKey }) => {
-      return api(queryKey.join("/"));
+    ["filesystem", currentItemId ? currentItemId : null],
+    () => {
+      return api(`/filesystem/${currentItemId || ""}`);
     }
   );
 
@@ -33,18 +38,26 @@ export const MyFilesPage: React.FC = () => {
     }
   }, [itemsQuery]);
 
+  useEffect(
+    () => {
+      filesystem.setCurrent(currentItem);
+    },
+    // eslint-disable-next-line
+    [currentItem]
+  );
+
   const { user } = useAuth();
   if (!user) return null;
 
   const onItemClicked = async (item: FilesystemItem) => {
     if (!item.is_file) {
-      setCurrentItem(item);
+      setCurrentItemId(item.id);
     }
   };
 
   const goBack = () => {
     if (!currentItem) return;
-    setCurrentItem((i) => (i ? i.parent : null));
+    setCurrentItemId(currentItem.parent);
   };
 
   return (

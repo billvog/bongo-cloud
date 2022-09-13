@@ -6,13 +6,16 @@ export const useAPICache = () => {
   const queryClient = useQueryClient();
 
   const setAuthenticatedUserFromResponse = (response: APIResponse) => {
-    const queryKey = ["/auth/me/"];
+    const queryKey = ["auth/me"];
     queryClient.setQueryData<APIResponse>(queryKey, response);
   };
 
   const addItem = (item: FilesystemItem) => {
-    const queryKey = ["/filesystem", item.parent ? item.parent.id + "/" : null];
+    const queryKey = ["filesystem", item.parent ? item.parent : null];
     const previousData = queryClient.getQueryData<APIResponse>(queryKey);
+
+    console.log(queryKey);
+    console.log(previousData);
 
     if (previousData) {
       queryClient.setQueryData<APIResponse>(queryKey, {
@@ -27,13 +30,10 @@ export const useAPICache = () => {
 
   const updateItem = (
     itemId: string,
-    oldParent: FilesystemItem | null,
+    oldParent: string | null,
     itemValues: FilesystemItemEditable
   ) => {
-    const parentQueryKey = [
-      "/filesystem",
-      oldParent ? oldParent.id + "/" : null,
-    ];
+    const parentQueryKey = ["filesystem", oldParent ? oldParent : null];
     const parentQueryData =
       queryClient.getQueryData<APIResponse>(parentQueryKey);
 
@@ -59,7 +59,7 @@ export const useAPICache = () => {
       });
     }
 
-    const queryKey = ["/filesystem", itemId + "/"];
+    const queryKey = ["filesystem", itemId];
     const queryData = queryClient.getQueryData<APIResponse>(queryKey);
 
     if (queryData) {
@@ -78,10 +78,7 @@ export const useAPICache = () => {
   };
 
   const removeItem = (item: FilesystemItem) => {
-    const parentQueryKey = [
-      "/filesystem",
-      item.parent ? item.parent.id + "/" : null,
-    ];
+    const parentQueryKey = ["filesystem", item.parent ? item.parent : null];
     const parentQueryData =
       queryClient.getQueryData<APIResponse>(parentQueryKey);
 
@@ -98,7 +95,7 @@ export const useAPICache = () => {
       });
     }
 
-    queryClient.removeQueries(["/filesystem", item.id + "/"]);
+    queryClient.removeQueries(["filesystem", item.id]);
   };
 
   return {

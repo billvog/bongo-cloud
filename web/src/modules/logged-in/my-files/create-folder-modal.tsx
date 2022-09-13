@@ -8,6 +8,7 @@ import { apiErrorNotification } from "../../../utils/api-error-update-notificati
 import { formatApiErrors } from "../../../utils/format-api-errors";
 import { api, APIResponse } from "../../api";
 import { useAPICache } from "../../shared-hooks/use-api-cache";
+import { useFilesystem } from "../context/filesystem-context";
 
 interface CreateFolderModalProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const filesystem = useFilesystem();
+
   const form = useForm({
     initialValues: {
       name: "",
@@ -28,15 +31,17 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   });
 
   const apiCache = useAPICache();
-  const createFolderMutation = useMutation<APIResponse, any, { name: string }>(
-    (values) => {
-      return api("/filesystem/create/", "POST", {
-        parent: null,
-        name: values.name,
-        uploaded_file: null,
-      });
-    }
-  );
+  const createFolderMutation = useMutation<
+    APIResponse,
+    any,
+    { parent: string | null; name: string }
+  >((values) => {
+    return api("/filesystem/create/", "POST", {
+      parent: values.parent,
+      name: values.name,
+      uploaded_file: null,
+    });
+  });
 
   useEffect(() => {
     // reset state on open
@@ -60,7 +65,10 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
         className="flex flex-col space-y-5"
         onSubmit={form.onSubmit((values) => {
           createFolderMutation.mutate(
-            { name: values.name },
+            {
+              parent: filesystem.current?.id || null,
+              name: values.name,
+            },
             {
               onSuccess: (data) => {
                 if (!data.ok) {

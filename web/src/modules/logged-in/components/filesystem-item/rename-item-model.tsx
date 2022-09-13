@@ -65,7 +65,7 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
         onSubmit={form.onSubmit((values) => {
           renameItemMutation.mutate(
             {
-              parent: null,
+              parent: item.parent,
               name: values.name,
             },
             {
