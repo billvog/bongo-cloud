@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import {
   AiFillFolder,
   AiOutlineDownload,
-  AiOutlineFile,
   AiOutlineInfoCircle,
 } from "react-icons/ai";
 import { BiMove, BiRename } from "react-icons/bi";
 import { HiOutlineDotsCircleHorizontal } from "react-icons/hi";
 import { IoTrash } from "react-icons/io5";
 import { FilesystemItem } from "../../../../types";
+import { getIconForFile } from "../../../../utils/get-icon-for-file";
 import { apiDownloadFile } from "../../../api";
 import { RenameItemModal } from "./rename-item-model";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
@@ -34,6 +34,8 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
   const onDeleteClicked = () => deleteItem();
   const onRenameClicked = () => setRenameModelOpen(true);
 
+  const ItemIcon = item.is_file ? getIconForFile(item.name) : AiFillFolder;
+
   return (
     <>
       <div className="flex flex-row items-center justify-between px-4 py-2 bg-gray-50 hover:bg-gray-100 border-solid border-0 border-b border-b-gray-200">
@@ -43,7 +45,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
             item.is_file ? "font-medium" : "font-bold"
           }`}
         >
-          {item.is_file ? <AiOutlineFile /> : <AiFillFolder />}
+          <ItemIcon />
           <div>{item.name}</div>
         </div>
         <div className="flex flex-row items-center space-x-3">
