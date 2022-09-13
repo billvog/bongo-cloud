@@ -2,10 +2,11 @@ import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
+import { useMutation } from "react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
-import { api } from "../../../api";
-import { useAuth } from "../../../auth-context";
+import { api, APIResponse } from "../../../api";
+import { useAPICache } from "../../../shared-hooks/use-api-cache";
 
 export const LoginPage: React.FC = () => {
   const form = useForm({
@@ -20,7 +21,13 @@ export const LoginPage: React.FC = () => {
   });
 
   const navigate = useNavigate();
-  const auth = useAuth();
+
+  const apiCache = useAPICache();
+  const loginMutation = useMutation<
+    APIResponse,
+    any,
+    { username: string; password: string }
+  >((values) => api("/auth/login/", "POST", values));
 
   return (
     <div className="clouded-bg-container">
@@ -36,13 +43,13 @@ export const LoginPage: React.FC = () => {
             loading: true,
           });
 
-          api("/auth/login/", "POST", values)
-            .then((response) => {
-              if (!response.ok) {
+          loginMutation.mutate(values, {
+            onSuccess: (data) => {
+              if (!data.ok) {
                 updateNotification({
                   id: login_notif_id,
                   title: "Invalid login",
-                  message: response.data.detail,
+                  message: data.data.detail,
                   color: "red",
                   loading: false,
                 });
@@ -50,7 +57,7 @@ export const LoginPage: React.FC = () => {
                 return;
               }
 
-              auth.setUser(response.data.user);
+              apiCache.setAuthenticatedUserFromResponse(data);
 
               updateNotification({
                 id: login_notif_id,
@@ -59,7 +66,7 @@ export const LoginPage: React.FC = () => {
                   <div>
                     You have been logged in as{" "}
                     <span className="font-bold underline">
-                      {response.data.user.username}
+                      {data.data.user.username}
                     </span>
                     ! Redirecting you...
                   </div>
@@ -69,10 +76,12 @@ export const LoginPage: React.FC = () => {
               });
 
               navigate("/app");
-            })
-            .catch(() => {
+            },
+            onError: (error) => {
+              console.log(error);
               apiErrorNotification(login_notif_id);
-            });
+            },
+          });
         })}
       >
         <div

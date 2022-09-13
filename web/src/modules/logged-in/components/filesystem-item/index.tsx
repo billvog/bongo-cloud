@@ -1,21 +1,19 @@
+import { ActionIcon, Menu } from "@mantine/core";
 import prettyBytes from "pretty-bytes";
 import React, { useState } from "react";
-import { FilesystemItem } from "../../../../types";
 import {
   AiFillFolder,
   AiOutlineDownload,
   AiOutlineFile,
   AiOutlineInfoCircle,
 } from "react-icons/ai";
+import { BiMove, BiRename } from "react-icons/bi";
 import { HiOutlineDotsCircleHorizontal } from "react-icons/hi";
 import { IoTrash } from "react-icons/io5";
-import { BiMove, BiRename } from "react-icons/bi";
-import { ActionIcon, Menu } from "@mantine/core";
-import { api, apiDownloadFile } from "../../../api";
-import { openConfirmModal } from "@mantine/modals";
-import { showNotification, updateNotification } from "@mantine/notifications";
-import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
+import { FilesystemItem } from "../../../../types";
+import { apiDownloadFile } from "../../../api";
 import { RenameItemModal } from "./rename-item-model";
+import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
 
 interface FilesystemItemProps {
   item: FilesystemItem;
@@ -26,77 +24,14 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
   item,
   onClick,
 }) => {
+  const deleteItem = useItemDeleteWithConfirmation(item);
   const [renameModalOpen, setRenameModelOpen] = useState(false);
 
   const onDownloadClicked = () => {
     apiDownloadFile(item);
   };
 
-  const onDeleteClicked = () => {
-    const deleteFile = () => {
-      const delete_file_notif_id = "delete_file_notif_id";
-      showNotification({
-        id: delete_file_notif_id,
-        title: `Deleting "${item.name}"...`,
-        message: undefined,
-        color: "gray",
-        loading: true,
-      });
-
-      api("/filesystem/" + item.id + "/delete", "DELETE")
-        .then((response) => {
-          if (!response.ok) {
-            updateNotification({
-              id: delete_file_notif_id,
-              title: `Couldn't delete "${item.name}".`,
-              message: `Something went wrong while trying to delete "${item.name}"`,
-              color: "red",
-              loading: false,
-            });
-            return;
-          }
-
-          updateNotification({
-            id: delete_file_notif_id,
-            title: `"${item.name}" deleted.`,
-            message: "Item deleted successfully!",
-            color: "blue",
-            loading: false,
-          });
-        })
-        .catch((error) => {
-          console.log(error);
-          apiErrorNotification(delete_file_notif_id);
-        });
-    };
-
-    openConfirmModal({
-      centered: true,
-      overlayBlur: 3,
-      overlayOpacity: 0.5,
-      title: <span className="font-bold text-lg">Delete confirmation.</span>,
-      children: (
-        <div>
-          <p>
-            Are you sure you want to delete "
-            <span className="font-semibold underline">{item.name}</span>
-            "?
-          </p>
-        </div>
-      ),
-      confirmProps: {
-        color: "red",
-        variant: "light",
-        leftIcon: <IoTrash size={16} />,
-      },
-      cancelProps: {
-        variant: "default",
-      },
-      labels: { confirm: "Confirm", cancel: "Cancel" },
-      onConfirm: () => deleteFile(),
-    });
-  };
-
+  const onDeleteClicked = () => deleteItem();
   const onRenameClicked = () => setRenameModelOpen(true);
 
   return (

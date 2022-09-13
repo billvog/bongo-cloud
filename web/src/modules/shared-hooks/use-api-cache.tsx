@@ -1,9 +1,14 @@
 import { useQueryClient } from "react-query";
-import { FilesystemItem, FilesystemItemEditable } from "../../../types";
-import { APIResponse } from "../../api";
+import { FilesystemItem, FilesystemItemEditable } from "../../types";
+import { APIResponse } from "../api";
 
 export const useAPICache = () => {
   const queryClient = useQueryClient();
+
+  const setAuthenticatedUserFromResponse = (response: APIResponse) => {
+    const queryKey = ["/auth/me/"];
+    queryClient.setQueryData<APIResponse>(queryKey, response);
+  };
 
   const addItem = (item: FilesystemItem) => {
     const queryKey = ["/filesystem", item.parent ? item.parent.id + "/" : null];
@@ -72,5 +77,34 @@ export const useAPICache = () => {
     }
   };
 
-  return { addItem, updateItem };
+  const removeItem = (item: FilesystemItem) => {
+    const parentQueryKey = [
+      "/filesystem",
+      item.parent ? item.parent.id + "/" : null,
+    ];
+    const parentQueryData =
+      queryClient.getQueryData<APIResponse>(parentQueryKey);
+
+    if (parentQueryData) {
+      const oldItems = parentQueryData.data.items as FilesystemItem[];
+      const newItems = oldItems.filter((_item) => _item.id !== item.id);
+
+      queryClient.setQueryData<APIResponse>(parentQueryKey, {
+        ...parentQueryData,
+        data: {
+          ...parentQueryData.data,
+          items: newItems,
+        },
+      });
+    }
+
+    queryClient.removeQueries(["/filesystem", item.id + "/"]);
+  };
+
+  return {
+    setAuthenticatedUserFromResponse,
+    addItem,
+    updateItem,
+    removeItem,
+  };
 };

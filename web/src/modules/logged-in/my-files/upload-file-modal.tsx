@@ -8,7 +8,7 @@ import { IoMdCloseCircleOutline } from "react-icons/io";
 import { useMutation } from "react-query";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { api, APIResponse } from "../../api";
-import { useAPICache } from "../shared-hooks/use-api-cache";
+import { useAPICache } from "../../shared-hooks/use-api-cache";
 
 interface UploadFileModalProps {
   isOpen: boolean;

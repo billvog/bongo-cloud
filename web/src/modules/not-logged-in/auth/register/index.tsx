@@ -2,11 +2,12 @@ import { Button, PasswordInput, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
+import { useMutation } from "react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
-import { api } from "../../../api";
-import { useAuth } from "../../../auth-context";
+import { api, APIResponse } from "../../../api";
+import { useAPICache } from "../../../shared-hooks/use-api-cache";
 
 export const RegisterPage: React.FC = () => {
   const form = useForm({
@@ -31,8 +32,20 @@ export const RegisterPage: React.FC = () => {
     },
   });
 
-  const auth = useAuth();
   const navigate = useNavigate();
+
+  const apiCache = useAPICache();
+  const registerMutation = useMutation<
+    APIResponse,
+    any,
+    {
+      first_name: string;
+      last_name: string;
+      username: string;
+      email: string;
+      password: string;
+    }
+  >((values) => api("/auth/register/", "POST", values));
 
   return (
     <div className="clouded-bg-container">
@@ -48,10 +61,10 @@ export const RegisterPage: React.FC = () => {
             loading: true,
           });
 
-          api("/auth/register/", "POST", values)
-            .then((response) => {
-              if (!response.ok) {
-                form.setErrors(formatApiErrors(response.data));
+          registerMutation.mutate(values, {
+            onSuccess: (data) => {
+              if (!data.ok) {
+                form.setErrors(formatApiErrors(data.data));
                 updateNotification({
                   id: register_notif_id,
                   title: "Registration failed",
@@ -63,7 +76,7 @@ export const RegisterPage: React.FC = () => {
                 return;
               }
 
-              auth.setUser(response.data.user);
+              apiCache.setAuthenticatedUserFromResponse(data);
 
               updateNotification({
                 id: register_notif_id,
@@ -72,7 +85,7 @@ export const RegisterPage: React.FC = () => {
                   <div>
                     You have been logged in as{" "}
                     <span className="font-bold underline">
-                      {response.data.user.username}
+                      {data.data.user.username}
                     </span>
                     ! Redirecting you...
                   </div>
@@ -82,10 +95,12 @@ export const RegisterPage: React.FC = () => {
               });
 
               navigate("/app");
-            })
-            .catch(() => {
+            },
+            onError: (error) => {
+              console.log(error);
               apiErrorNotification(register_notif_id);
-            });
+            },
+          });
         })}
       >
         <div

@@ -7,7 +7,7 @@ import { FilesystemItem, FilesystemItemEditable } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
-import { useAPICache } from "../../shared-hooks/use-api-cache";
+import { useAPICache } from "../../../shared-hooks/use-api-cache";
 
 interface RenameItemModalProps {
   item: FilesystemItem;

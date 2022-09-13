@@ -1,17 +1,17 @@
 import { LoadingOverlay } from "@mantine/core";
 import React, { useContext, useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { User } from "../types";
 import { api } from "./api";
+import { clearAuthTokens } from "./auth-tokens";
 import { ServerErrorPage } from "./common/errors/server-error";
 
 type AuthContextType = {
   user: User | null;
-  setUser: (user: User | null) => void;
 };
 
 export const AuthContext = React.createContext<AuthContextType>({
   user: null,
-  setUser(user) {},
 });
 
 interface AuthProviderProps {
@@ -20,27 +20,28 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const meQuery = useQuery("/auth/me/", ({ queryKey }) =>
+    api(queryKey.join("/"))
+  );
 
   useEffect(() => {
-    api("/auth/me/")
-      .then((response) => {
-        setLoading(false);
-        if (response.status === 200) {
-          setUser(response.data.user);
-        }
-      })
-      .catch(() => {
-        setError(true);
-      });
-  }, []);
+    if (!meQuery.data) {
+      setUser(null);
+    } else if (meQuery.data.status === 200) {
+      setUser(meQuery.data.data.user);
+    } else if (
+      meQuery.data.status === 403 &&
+      meQuery.data.data.detail === "User not found"
+    ) {
+      clearAuthTokens();
+    }
+  }, [meQuery.data]);
 
-  if (error) {
+  if (meQuery.isError) {
     return <ServerErrorPage />;
   }
 
-  if (loading) {
+  if (meQuery.isLoading) {
     return (
       <LoadingOverlay
         visible={true}
@@ -53,9 +54,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        setUser(user) {
-          setUser(user);
-        },
       }}
     >
       {children}
