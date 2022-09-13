@@ -30,12 +30,15 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 		]
 
 	def validate_name(self, value):
+		request = self.context.get('request')
+		user = request.user
+
 		name = value
 		parent = self.initial_data['parent']
 		if parent == '':
 			parent = None
 
-		if FilesystemItem.objects.all().filter(parent=parent, name__exact=name).exists():
+		if FilesystemItem.objects.all().filter(owner=user, parent=parent, name__exact=name).exists():
 			raise serializers.ValidationError(f'"{name}" already exists at this location.')
 			
 		return value
@@ -55,9 +58,12 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 		]
 
 	def validate_name(self, value):
+		request = self.context.get('request')
+		user = request.user
+
 		name = value
 		parent = self.initial_data['parent']
-		if FilesystemItem.objects.all().filter(parent=parent, name__exact=name).exists():
+		if FilesystemItem.objects.all().filter(owner=user, parent=parent, name__exact=name).exists():
 			raise serializers.ValidationError(f'"{name}" already exists at this location.')
 		return value
 
