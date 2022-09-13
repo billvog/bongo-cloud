@@ -94,7 +94,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
       centered
       overlayBlur={3}
       overlayOpacity={0.5}
-      title={<span className="font-bold text-lg">Upload your files.</span>}
+      title={<span className="font-bold text-lg">Upload your files</span>}
     >
       <div>
         <Dropzone

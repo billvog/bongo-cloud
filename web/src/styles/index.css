@@ -12,10 +12,12 @@ body {
 a, a:visited {
   color: dodgerblue;
   opacity: 1;
+  text-decoration: none;
 }
 
 a:hover {
   opacity: .7;
+  text-decoration: underline;
 }
 
 h1, h2, h3 {

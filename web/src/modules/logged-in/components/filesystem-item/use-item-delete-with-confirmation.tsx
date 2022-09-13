@@ -1,6 +1,5 @@
 import { openConfirmModal } from "@mantine/modals";
 import { showNotification, updateNotification } from "@mantine/notifications";
-import { IoTrash } from "react-icons/io5";
 import { useMutation } from "react-query";
 import { FilesystemItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
@@ -69,11 +68,12 @@ export const useItemDeleteWithConfirmation = (item: FilesystemItem) => {
         </div>
       ),
       confirmProps: {
+        compact: true,
         color: "red",
-        variant: "light",
-        leftIcon: <IoTrash size={16} />,
+        variant: "filled",
       },
       cancelProps: {
+        compact: true,
         variant: "default",
       },
       labels: { confirm: "Confirm", cancel: "Cancel" },

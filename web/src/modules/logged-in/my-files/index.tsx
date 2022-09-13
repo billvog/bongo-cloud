@@ -1,9 +1,11 @@
-import { ActionIcon, Button, LoadingOverlay } from "@mantine/core";
+import { ActionIcon, LoadingOverlay, Menu } from "@mantine/core";
+import prettyBytes from "pretty-bytes";
 import React, { useEffect, useState } from "react";
-import { AiOutlineCloudUpload } from "react-icons/ai";
+import { AiOutlineCloudUpload, AiOutlinePlus } from "react-icons/ai";
 import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
 import { useQuery } from "react-query";
+import { Link } from "react-router-dom";
 import { FilesystemItem } from "../../../types";
 import { api } from "../../api";
 import { useAuth } from "../../auth-context";
@@ -60,6 +62,12 @@ export const MyFilesPage: React.FC = () => {
     setCurrentItemId(currentItem.parent);
   };
 
+  const getTotalSizeOfCurrentDir = () => {
+    let size: number = 0;
+    items.forEach((item) => (size += item.size));
+    return size;
+  };
+
   return (
     <Layout>
       <>
@@ -98,14 +106,30 @@ export const MyFilesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <ActionIcon
-                  color="red"
-                  variant="subtle"
-                  title="Create folder"
-                  onClick={() => setCreateFolderModalOpen(true)}
-                >
-                  <BsFolderPlus size={18} />
-                </ActionIcon>
+                <Menu width={180} position="left">
+                  <Menu.Target>
+                    <ActionIcon
+                      className="cursor-pointer text-orange-400 hover:text-orange-500"
+                      variant="subtle"
+                    >
+                      <AiOutlinePlus size={20} />
+                    </ActionIcon>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      icon={<AiOutlineCloudUpload size={16} />}
+                      onClick={() => setUploadModalOpen(true)}
+                    >
+                      Upload file
+                    </Menu.Item>
+                    <Menu.Item
+                      icon={<BsFolderPlus size={14} />}
+                      onClick={() => setCreateFolderModalOpen(true)}
+                    >
+                      Create folder
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
               </div>
             </div>
             <div className="flex flex-col h-full">
@@ -113,7 +137,7 @@ export const MyFilesPage: React.FC = () => {
                 <div className="flex-1 flex flex-col items-center justify-center">
                   <img
                     alt="empty gif"
-                    src="https://media3.giphy.com/media/giXLnhxp60zEEIkq8K/giphy.gif?cid=ecf05e474q6i7r8wsfv0udn2soyd7rjjz0j83t7wizn6gtca&rid=giphy.gif&ct=g"
+                    src="/images/empty.gif"
                     width={300}
                     className="mb-4 select-none"
                   />
@@ -133,15 +157,21 @@ export const MyFilesPage: React.FC = () => {
             </div>
           </div>
           {/* footer */}
-          <div className="flex flex-row items-center bg-orange-200 text-orange-500 px-4 py-3">
-            <Button
-              compact
-              color="dark"
-              leftIcon={<AiOutlineCloudUpload />}
-              onClick={() => setUploadModalOpen(true)}
-            >
-              <span className="font-bold">Upload</span>
-            </Button>
+          <div className="flex flex-row items-center justify-between bg-orange-200 text-orange-500 px-4 py-3">
+            <div>
+              {items.length > 0 && (
+                <div className="font-semibold">
+                  Currently using:{" "}
+                  <span className="font-bold text-orange-600">
+                    {prettyBytes(getTotalSizeOfCurrentDir())}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="text-sm space-x-4">
+              <Link to="#">About us.</Link>
+              <Link to="#">Bongo's model.</Link>
+            </div>
           </div>
         </div>
         <UploadFileModal
