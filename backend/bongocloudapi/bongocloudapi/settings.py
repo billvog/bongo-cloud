@@ -10,22 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+IS_PROD = 'BONGO_PRODUCTION' in os.environ
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-5g9u#1a_qzr7lsn4_nd3hc32p_8tcn@_j&^ucsnnv(oopjl83y'
+if 'SECRET_KEY' in os.environ:
+    SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not IS_PROD
 
 ALLOWED_HOSTS = [
+    'bongoapi.bongo-cloud.ga',
     'localhost'
 ]
 
@@ -81,15 +88,11 @@ WSGI_APPLICATION = 'bongocloudapi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': './config/database.cnf'
-        }
-    }
-}
+MAX_CONN_AGE = 600
 
+DATABASES = {
+    'default': dj_database_url.config(conn_max_age=MAX_CONN_AGE, ssl_require=False, default="mysql://root:@localhost:3306/bongocloud_dev")
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -121,6 +124,10 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Use always https
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -128,7 +135,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # Media files (uploaded by user)
-# MEDIA_URL = 'http://storage.bongo-cloud.ga/'
 MEDIA_URL = 'bongoose/'
 MEDIA_ROOT = 'bongo-storage/'
 
@@ -138,7 +144,11 @@ MEDIA_ROOT = 'bongo-storage/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Cors
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+if IS_PROD:
+    CORS_ALLOWED_ORIGINS = ['https://bongo-cloud.ga']
+else:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+
 CORS_EXPOSE_HEADERS = [
     'x-access-token',
     'x-refresh-token'
