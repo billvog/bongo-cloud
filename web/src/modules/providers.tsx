@@ -4,10 +4,18 @@ import { BrowserRouter } from "react-router-dom";
 import { NotificationsProvider } from "@mantine/notifications";
 import { AuthProvider } from "./auth-context";
 import { ModalsProvider } from "@mantine/modals";
-import { QueryClient, QueryClientProvider } from "react-query";
+import { QueryCache, QueryClient, QueryClientProvider } from "react-query";
 import { AuthenticatedProviders } from "./logged-in/authenticated-providers";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  queryCache: new QueryCache(),
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 10, // 10s
+    },
+  },
+});
 
 interface ProvidersProps {
   children: JSX.Element;

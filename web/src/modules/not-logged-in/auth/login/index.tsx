@@ -75,7 +75,7 @@ export const LoginPage: React.FC = () => {
                 loading: false,
               });
 
-              navigate("/app");
+              navigate("/files");
             },
             onError: (error) => {
               console.log(error);

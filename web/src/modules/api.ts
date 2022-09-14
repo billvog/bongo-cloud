@@ -8,7 +8,10 @@ import {
   setRefreshToken,
 } from "./auth-tokens";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://bongoapi.bongo-cloud.ga"
+    : "http://localhost:8000";
 
 type Method = "GET" | "POST" | "DELETE" | "UPDATE" | "PUT" | "PATCH";
 
@@ -110,7 +113,54 @@ export const api = async <Data = any>(
   };
 };
 
-export const apiDownloadFile = async (item: FilesystemItem) => {
+export const apiUploadFile = async (
+  body: {
+    parent: string | null;
+    name: string;
+    uploaded_file: Blob;
+  },
+  onProgress: (total: number, uploaded: number) => void
+): Promise<APIResponse> => {
+  let accessToken = await apiRefreshTokenIfNeeded();
+  if (!accessToken) {
+    throw new Error("Not authenticated");
+  }
+
+  const formData = new FormData();
+  formData.append("parent", body.parent || "");
+  formData.append("name", body.name);
+  formData.append("uploaded_file", body.uploaded_file);
+
+  var ajax = new XMLHttpRequest();
+  await new Promise((res) => {
+    ajax.upload.addEventListener(
+      "progress",
+      (e) => onProgress(e.total, e.loaded),
+      false
+    );
+    ajax.addEventListener("load", () => res(true), false);
+    ajax.addEventListener("error", () => res(false), false);
+    ajax.addEventListener("abort", () => res(false), false);
+    ajax.open("POST", API_BASE_URL + "/filesystem/create/");
+    ajax.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+    ajax.send(formData);
+  });
+
+  const status = ajax.status;
+  const data = JSON.parse(ajax.response);
+
+  return {
+    status,
+    ok: status === 201,
+    data,
+    headers: {} as any,
+  };
+};
+
+export const apiDownloadFile = async (
+  item: FilesystemItem,
+  onProgress: (total: number, recieved: number) => void
+) => {
   if (!item.is_file) {
     return;
   }
@@ -127,7 +177,28 @@ export const apiDownloadFile = async (item: FilesystemItem) => {
     headers,
   });
 
-  const blob = await response.blob();
+  const contentLength = response.headers.get("content-length") || "0";
+  const total = parseInt(contentLength);
+  let loaded = 0;
+
+  const responseWithProgress = new Response(
+    new ReadableStream({
+      async start(controller) {
+        if (!response.body) return;
+        const reader = response.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          loaded += value.byteLength;
+          onProgress(total, loaded);
+          controller.enqueue(value);
+        }
+        controller.close();
+      },
+    })
+  );
+
+  const blob = await responseWithProgress.blob();
 
   var url = window.URL.createObjectURL(blob);
   var a = document.createElement("a");

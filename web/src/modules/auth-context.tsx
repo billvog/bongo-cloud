@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return <ServerErrorPage />;
   }
 
-  if (meQuery.isLoading || !user) {
+  if (meQuery.isLoading) {
     return (
       <LoadingOverlay
         visible={true}

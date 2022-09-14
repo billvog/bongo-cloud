@@ -5,7 +5,6 @@ import { AiOutlineCloudUpload, AiOutlinePlus } from "react-icons/ai";
 import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
 import { useQuery } from "react-query";
-import { Link } from "react-router-dom";
 import { FilesystemItem } from "../../../types";
 import { api } from "../../api";
 import { useAuth } from "../../auth-context";
@@ -29,7 +28,7 @@ export const MyFilesPage: React.FC = () => {
   const itemsQuery = useQuery(
     ["filesystem", currentItemId ? currentItemId : null],
     () => {
-      return api(`/filesystem/${currentItemId || ""}`);
+      return api(`/filesystem/${currentItemId ? currentItemId + "/" : ""}`);
     }
   );
 
@@ -77,7 +76,12 @@ export const MyFilesPage: React.FC = () => {
         <div className="flex flex-col h-full">
           <div className="flex-1 flex flex-col h-full">
             <div className="flex flex-row justify-between items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600">
-              <div className="flex items-center space-x-4">
+              <div
+                className="flex items-center space-x-4"
+                style={{
+                  maxWidth: "calc(100% - 40px)",
+                }}
+              >
                 <IoMdArrowBack
                   size={20}
                   className={`${
@@ -87,7 +91,7 @@ export const MyFilesPage: React.FC = () => {
                   }`}
                   onClick={goBack}
                 />
-                <div>
+                <div className="overflow-x-auto whitespace-nowrap no-scrollbar">
                   {(currentItem ? currentItem.path + "/" : "/")
                     .slice(1)
                     .split("/")
@@ -132,7 +136,7 @@ export const MyFilesPage: React.FC = () => {
                 </Menu>
               </div>
             </div>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full overflow-y-auto">
               {items.length <= 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center">
                   <img
@@ -157,20 +161,14 @@ export const MyFilesPage: React.FC = () => {
             </div>
           </div>
           {/* footer */}
-          <div className="flex flex-row items-center justify-between bg-orange-200 text-orange-500 px-4 py-3">
-            <div>
-              {items.length > 0 && (
-                <div className="font-semibold">
-                  Currently using:{" "}
-                  <span className="font-bold text-orange-600">
-                    {prettyBytes(getTotalSizeOfCurrentDir())}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="text-sm space-x-4">
-              <Link to="#">About us.</Link>
-              <Link to="#">Bongo's model.</Link>
+          <div className="flex flex-row items-center bg-orange-200 text-orange-500 px-4 py-3">
+            <div className="font-semibold">
+              Folder size:{" "}
+              <span className="font-bold text-orange-600">
+                {items.length > 0
+                  ? prettyBytes(getTotalSizeOfCurrentDir())
+                  : "Zero"}
+              </span>
             </div>
           </div>
         </div>

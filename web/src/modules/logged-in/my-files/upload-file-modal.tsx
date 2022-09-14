@@ -7,7 +7,7 @@ import { BsFileEarmarkArrowUp } from "react-icons/bs";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { useMutation } from "react-query";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
-import { api, APIResponse } from "../../api";
+import { APIResponse, apiUploadFile } from "../../api";
 import { useAPICache } from "../../shared-hooks/use-api-cache";
 import { useFilesystem } from "../context/filesystem-context";
 
@@ -28,16 +28,15 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
     any,
     { parent: string | null; name: string; uploaded_file: Blob }
   >((values) => {
-    return api(
-      "/filesystem/create/",
-      "POST",
+    // TODO: RingProgressBar
+    return apiUploadFile(
       {
         parent: values.parent,
         name: values.name,
         uploaded_file: values.uploaded_file,
       },
-      {
-        sendAsFormData: true,
+      (total, uploaded) => {
+        console.log((uploaded / total) * 100);
       }
     );
   });
@@ -50,6 +49,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
       loading: true,
       title: `Uploading "${file.name}"...`,
       message: undefined,
+      autoClose: false,
     });
 
     let blob = file as Blob;
@@ -77,6 +77,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
             title: `Uploaded "${file.name}"!`,
             message: undefined,
             color: "blue",
+            autoClose: 3000,
           });
         },
         onError: (error) => {
@@ -112,7 +113,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
               });
             });
           }}
-          maxSize={1024 * 1024 * 1024 * 5} // 5GB
+          maxSize={1024 * 1024 * 1024 * 10} // 10 GB
         >
           <div className="flex flex-col justify-center items-center space-y-6 p-3">
             <Dropzone.Accept>
@@ -129,8 +130,8 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
                 Drag files here or click to select files.
               </div>
               <div className="text-sm text-gray-500">
-                Attach as many files as you like, each file should not exceed
-                5GB in size.
+                Attach as many files as you like, each file should not exceed 10
+                GB in size.
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 // Not logged in
 import { LoginPage } from "./not-logged-in/auth/login";
 import { RegisterPage } from "./not-logged-in/auth/register";
@@ -17,8 +17,9 @@ export const MyRoutes: React.FC = () => {
       {auth.user ? (
         // Logged in
         <>
+          <Route path="/" element={<Navigate to="/files" />} />
           <Route path="/files" element={<MyFilesPage />} />
-          {/* <Route path="*" element={<NotFoundErrorPage />} /> */}
+          <Route path="*" element={<NotFoundErrorPage />} />
         </>
       ) : (
         // Not logged in
