@@ -22,4 +22,5 @@ export type FilesystemItem = {
 export type FilesystemItemEditable = {
   parent: string | null;
   name: string;
+  path: string;
 };

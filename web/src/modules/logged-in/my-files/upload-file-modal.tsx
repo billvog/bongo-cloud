@@ -1,8 +1,8 @@
-import { Modal } from "@mantine/core";
+import { Modal, RingProgress, ThemeIcon } from "@mantine/core";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import { showNotification, updateNotification } from "@mantine/notifications";
 import React from "react";
-import { AiOutlineCloudUpload } from "react-icons/ai";
+import { AiFillCheckCircle, AiOutlineCloudUpload } from "react-icons/ai";
 import { BsFileEarmarkArrowUp } from "react-icons/bs";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { useMutation } from "react-query";
@@ -10,6 +10,10 @@ import { apiErrorNotification } from "../../../utils/api-error-update-notificati
 import { APIResponse, apiUploadFile } from "../../api";
 import { useAPICache } from "../../shared-hooks/use-api-cache";
 import { useFilesystem } from "../context/filesystem-context";
+
+const generateUploadNotifIdForFile = (file: FileWithPath) => {
+  return `upload_file_notif:${file.name}:${file.size}:${file.lastModified}`;
+};
 
 interface UploadFileModalProps {
   isOpen: boolean;
@@ -22,42 +26,58 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
 }) => {
   const filesystem = useFilesystem();
 
+  const RingProgressComponent = (progress: number) => {
+    return (
+      <RingProgress sections={[{ value: progress, color: "blue" }]} size={40} />
+    );
+  };
+
   const apiCache = useAPICache();
   const uploadFileMutation = useMutation<
     APIResponse,
     any,
-    { parent: string | null; name: string; uploaded_file: Blob }
+    {
+      parent: string | null;
+      name: string;
+      uploaded_file: Blob;
+      onProgress: (total: number, uploaded: number) => void;
+    }
   >((values) => {
-    // TODO: RingProgressBar
     return apiUploadFile(
       {
         parent: values.parent,
         name: values.name,
         uploaded_file: values.uploaded_file,
       },
-      (total, uploaded) => {
-        console.log((uploaded / total) * 100);
-      }
+      (total, uploaded) => values.onProgress(total, uploaded)
     );
   });
 
-  const uploadFile = (file: FileWithPath) => {
-    const upload_file_notif = "upload_file_notif:" + (file.path || file.name);
+  const uploadFile = async (file: FileWithPath) => {
+    const upload_file_notif = generateUploadNotifIdForFile(file);
 
-    showNotification({
+    updateNotification({
       id: upload_file_notif,
       loading: true,
       title: `Uploading "${file.name}"...`,
-      message: undefined,
+      message: "Uploading is about to start...",
       autoClose: false,
     });
 
     let blob = file as Blob;
-    uploadFileMutation.mutate(
+    return uploadFileMutation.mutateAsync(
       {
         parent: filesystem.current?.id || null,
         name: file.name,
         uploaded_file: blob,
+        onProgress: (total, uploaded) => {
+          updateNotification({
+            id: upload_file_notif,
+            message: `"${file.name}" is uploading...`,
+            icon: RingProgressComponent((uploaded / total) * 100),
+            autoClose: false,
+          });
+        },
       },
       {
         onSuccess: (data) => {
@@ -74,10 +94,14 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
           updateNotification({
             id: upload_file_notif,
             loading: false,
-            title: `Uploaded "${file.name}"!`,
-            message: undefined,
+            title: `Success`,
+            message: `"${file.name}" is uploaded!`,
+            icon: (
+              <ThemeIcon color="teal" variant="light" radius="xl" size="md">
+                <AiFillCheckCircle size={22} />
+              </ThemeIcon>
+            ),
             color: "blue",
-            autoClose: 3000,
           });
         },
         onError: (error) => {
@@ -99,8 +123,21 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
     >
       <div>
         <Dropzone
-          onDrop={(files) => {
-            files.forEach((file) => uploadFile(file));
+          onDrop={async (files) => {
+            for (const file of files) {
+              showNotification({
+                id: generateUploadNotifIdForFile(file),
+                title: `"${file.name}" is waiting...`,
+                message: undefined,
+                color: "gray",
+                loading: true,
+                autoClose: false,
+              });
+            }
+
+            for (const file of files) {
+              await uploadFile(file);
+            }
           }}
           onReject={(files) => {
             files.forEach((f) => {

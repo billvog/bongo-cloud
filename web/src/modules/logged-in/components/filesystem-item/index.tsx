@@ -31,7 +31,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
   const [renameModalOpen, setRenameModelOpen] = useState(false);
 
   const onDownloadClicked = () => {
-    const download_loading_notif_id = "download_loading_notif_id";
+    const download_loading_notif_id = "download_loading_notif_id:" + item.id;
 
     const RingProgressComponent = (progress: number) => {
       return (
@@ -53,6 +53,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
     apiDownloadFile(item, (total, recieved) => {
       updateNotification({
         id: download_loading_notif_id,
+        title: "Downloading...",
         message: `"${item.name}" is downloading...`,
         icon: RingProgressComponent((recieved / total) * 100),
         autoClose: false,
@@ -61,7 +62,8 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
       .then(() => {
         updateNotification({
           id: download_loading_notif_id,
-          message: `"${item.name}" is downloaded.`,
+          title: "Success",
+          message: `"${item.name}" is downloaded!`,
           icon: (
             <ThemeIcon color="teal" variant="light" radius="xl" size="md">
               <AiFillCheckCircle size={22} />

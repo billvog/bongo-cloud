@@ -3,7 +3,7 @@ import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import React, { useEffect } from "react";
 import { useMutation } from "react-query";
-import { FilesystemItem, FilesystemItemEditable } from "../../../../types";
+import { FilesystemItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
@@ -33,7 +33,10 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
   const renameItemMutation = useMutation<
     APIResponse,
     any,
-    FilesystemItemEditable
+    {
+      name: string;
+      parent: string | null;
+    }
   >((values) => {
     return api(`/filesystem/${item.id}/update/`, "PATCH", values);
   });

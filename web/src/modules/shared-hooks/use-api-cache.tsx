@@ -14,9 +14,6 @@ export const useAPICache = () => {
     const queryKey = ["filesystem", item.parent ? item.parent : null];
     const previousData = queryClient.getQueryData<APIResponse>(queryKey);
 
-    console.log(queryKey);
-    console.log(previousData);
-
     if (previousData) {
       queryClient.setQueryData<APIResponse>(queryKey, {
         ...previousData,

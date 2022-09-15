@@ -13,7 +13,7 @@ export const useItemDeleteWithConfirmation = (item: FilesystemItem) => {
   );
 
   const deleteFile = () => {
-    const delete_file_notif_id = "delete_file_notif_id";
+    const delete_file_notif_id = "delete_file_notif_id" + item.id;
     showNotification({
       id: delete_file_notif_id,
       title: `Deleting "${item.name}"...`,
