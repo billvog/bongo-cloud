@@ -49,12 +49,15 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 		return value
 
 class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
+	path = serializers.CharField(read_only=True)
+
 	class Meta:
 		model = FilesystemItem
 		fields = [
 			'id',
 			'parent',
 			'name',
+			'path',
 		]
 
 	def validate_name(self, value):

@@ -17,7 +17,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 IS_PROD = 'BONGO_PRODUCTION' in os.environ
 
 # Quick-start development settings - unsuitable for production
@@ -125,7 +124,6 @@ USE_I18N = True
 USE_TZ = True
 
 # Use always https
-
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -136,7 +134,7 @@ STATIC_URL = 'static/'
 
 # Media files (uploaded by user)
 MEDIA_URL = 'bongoose/'
-MEDIA_ROOT = 'bongo-storage/'
+MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'bongo-storage')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

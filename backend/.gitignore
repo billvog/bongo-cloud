@@ -3,10 +3,7 @@ __pycache__
 venv
 
 # there are files uploaded by users
-bongocloudapi/bongo-storage/*
-
-# config
-bongocloudapi/config/database.cnf
+bongo-storage/*
 
 # misc
 .DS_Store
