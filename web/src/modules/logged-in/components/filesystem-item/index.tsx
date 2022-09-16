@@ -17,6 +17,7 @@ import { getIconForFile } from "../../../../utils/get-icon-for-file";
 import { apiDownloadFile } from "../../../api";
 import { RenameItemModal } from "./rename-item-model";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
+import { useMoveItem } from "./use-move-item";
 
 interface FilesystemItemProps {
   item: FilesystemItem;
@@ -29,6 +30,10 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
 }) => {
   const deleteItem = useItemDeleteWithConfirmation(item);
   const [renameModalOpen, setRenameModelOpen] = useState(false);
+  const moveItem = useMoveItem(item);
+
+  const onDeleteClicked = () => deleteItem();
+  const onRenameClicked = () => setRenameModelOpen(true);
 
   const onDownloadClicked = () => {
     const download_loading_notif_id = "download_loading_notif_id:" + item.id;
@@ -77,8 +82,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
       });
   };
 
-  const onDeleteClicked = () => deleteItem();
-  const onRenameClicked = () => setRenameModelOpen(true);
+  const onMoveClicked = () => moveItem();
 
   const ItemIcon = item.is_file ? getIconForFile(item.name) : AiFillFolder;
 
@@ -131,7 +135,9 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
                 >
                   Rename
                 </Menu.Item>
-                <Menu.Item icon={<BiMove size={16} />}>Move</Menu.Item>
+                <Menu.Item icon={<BiMove size={16} />} onClick={onMoveClicked}>
+                  Move
+                </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item icon={<AiOutlineInfoCircle size={16} />}>
                   Info

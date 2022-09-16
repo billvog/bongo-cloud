@@ -74,6 +74,10 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 		if value is None:
 			return value
 
+		instance = self.instance
+		if value == instance:
+			raise serializers.ValidationError("You can't move a folder to its self.")
+
 		request = self.context.get('request')
 		user = request.user
 
@@ -81,6 +85,12 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 			raise serializers.ValidationError("Parent folder could not be found.")
 
 		if value is not None and value.is_file:
-			raise serializers.ValidationError(f'{value.name} is not a folder.')
+			raise serializers.ValidationError(f'"{value.name}" is not a folder.')
 		
+		super_parent = value.parent
+		while super_parent is not None:
+			if super_parent == instance:
+				raise serializers.ValidationError(f'"{value.name}" is a subfolder of "{instance.name}".')
+			super_parent = super_parent.parent
+
 		return value

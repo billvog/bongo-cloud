@@ -30,12 +30,36 @@ export const useAPICache = () => {
     oldParent: string | null,
     itemValues: FilesystemItemEditable
   ) => {
-    const parentQueryKey = ["filesystem", oldParent ? oldParent : null];
-    const parentQueryData =
-      queryClient.getQueryData<APIResponse>(parentQueryKey);
+    let oldItemAtOldParent: FilesystemItem | null = null;
 
-    if (parentQueryData) {
-      const oldItems = parentQueryData.data.items as FilesystemItem[];
+    // if parent is changed, remove the item from its old position
+    if (oldParent !== itemValues.parent) {
+      const oldParentQueryKey = ["filesystem", oldParent];
+      const oldParentQueryData =
+        queryClient.getQueryData<APIResponse>(oldParentQueryKey);
+
+      if (oldParentQueryData) {
+        const oldItems = oldParentQueryData.data.items as FilesystemItem[];
+        oldItemAtOldParent = oldItems.find((i) => i.id === itemId) || null;
+
+        const updatedItems = oldItems.filter((item) => item.id !== itemId);
+
+        queryClient.setQueryData<APIResponse>(oldParentQueryKey, {
+          ...oldParentQueryData,
+          data: {
+            ...oldParentQueryData.data,
+            items: updatedItems,
+          },
+        });
+      }
+    }
+
+    const newParentQueryKey = ["filesystem", itemValues.parent];
+    const newParentQueryData =
+      queryClient.getQueryData<APIResponse>(newParentQueryKey);
+
+    if (newParentQueryData) {
+      const oldItems = newParentQueryData.data.items as FilesystemItem[];
       const updatedItems = oldItems.map((item) => {
         if (item.id === itemId) {
           return {
@@ -47,10 +71,19 @@ export const useAPICache = () => {
         }
       });
 
-      queryClient.setQueryData<APIResponse>(parentQueryKey, {
-        ...parentQueryData,
+      // if this is not null, that means the parent is changed.
+      // in this case, add it to its new parent.
+      if (oldItemAtOldParent) {
+        updatedItems.push({
+          ...oldItemAtOldParent,
+          ...itemValues,
+        });
+      }
+
+      queryClient.setQueryData<APIResponse>(newParentQueryKey, {
+        ...newParentQueryData,
         data: {
-          ...parentQueryData.data,
+          ...newParentQueryData.data,
           items: updatedItems,
         },
       });
