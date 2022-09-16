@@ -14,6 +14,7 @@ export const WelcomePage: React.FC = () => {
         className="max-w-xl p-6 space-y-3 rounded-lg bg-white bg-opacity-20"
         style={{
           backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
         }}
       >
         <h3>Why use Bongo instead of Googl3 Drive or iCl0ud?</h3>

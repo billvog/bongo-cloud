@@ -9,6 +9,8 @@ import { MyFilesPage } from "./logged-in/my-files";
 // Errors
 import { NotFoundErrorPage } from "./common/errors/not-found";
 import { useAuth } from "./auth-context";
+// Other
+import { AboutPage } from "./common/about";
 
 export const MyRoutes: React.FC = () => {
   const auth = useAuth();
@@ -19,7 +21,6 @@ export const MyRoutes: React.FC = () => {
         <>
           <Route path="/" element={<Navigate to="/files" />} />
           <Route path="/files" element={<MyFilesPage />} />
-          <Route path="*" element={<NotFoundErrorPage />} />
         </>
       ) : (
         // Not logged in
@@ -27,9 +28,10 @@ export const MyRoutes: React.FC = () => {
           <Route path="/" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<NotFoundErrorPage />} />
         </>
       )}
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="*" element={<NotFoundErrorPage />} />
     </Routes>
   );
 };
