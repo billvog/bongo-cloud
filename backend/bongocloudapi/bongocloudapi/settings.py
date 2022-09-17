@@ -31,10 +31,14 @@ if 'SECRET_KEY' in os.environ:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = not IS_PROD
 
-ALLOWED_HOSTS = [
-    'bongoapi.bongo-cloud.ga',
-    'localhost'
-]
+if IS_PROD:
+    ALLOWED_HOSTS = [
+        'bongoapi.bongo-cloud.ga',
+    ]
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+    ]
 
 
 # Application definition
