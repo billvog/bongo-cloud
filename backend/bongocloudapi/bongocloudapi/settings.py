@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 import dj_database_url
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'authentication.middleware.RefreshJWTMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +66,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'bongocloudapi.urls'
+
+# Extended User model
+AUTH_USER_MODEL = 'authentication.User'
+
+if IS_PROD:
+    JWT_ACCESS_TOKEN_SECRET = os.environ['JWT_ACCESS_TOKEN_SECRET']
+    JWT_REFRESH_TOKEN_SECRET = os.environ['JWT_REFRESH_TOKEN_SECRET']
+else:
+    JWT_ACCESS_TOKEN_SECRET = '1f8c63edb93a8b7d87137f86903fb003e117d15f8ac29a371cd5f15ee760b0ac'
+    JWT_REFRESH_TOKEN_SECRET = '9d3c0f6695b3dea490405946c9e5d5a6bdab6ffef6b82f79e79cbf8d1a378872'
 
 TEMPLATES = [
     {
@@ -134,7 +146,7 @@ STATIC_URL = 'static/'
 
 # Media files (uploaded by user)
 MEDIA_URL = 'bongoose/'
-MEDIA_ROOT = os.path.join(BASE_DIR.parent, 'bongo-storage')
+MEDIA_ROOT = BASE_DIR.parent / 'bongo-storage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -147,15 +159,20 @@ if IS_PROD:
 else:
     CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
 
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-access-token'
+]
+
 CORS_EXPOSE_HEADERS = [
     'x-access-token',
-    'x-refresh-token'
 ]
 
 # Django Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'authentication.authentication.JWTAuthentication',
     )
 }

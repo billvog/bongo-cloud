@@ -94,3 +94,17 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 			super_parent = super_parent.parent
 
 		return value
+
+class ShareFilesystemItemSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = FilesystemItem
+		fields = [
+			'id',
+			'allow_any',
+		]
+	
+	def validate_allow_any(self, value):
+		instance = self.instance
+		if not instance.is_file:
+			raise serializers.ValidationError("Cannot share folders.")
+		return value

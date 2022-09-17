@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import FilesystemItem
-from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer, UpdateFilesystemItemSerializer
+from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer, ShareFilesystemItemSerializer, UpdateFilesystemItemSerializer
 from .permissions import FilesystemOwnerPermissionsMixin
 
 class FilesystemItemListAPIView(FilesystemOwnerPermissionsMixin, ListAPIView):
@@ -78,3 +78,7 @@ class FilesystemItemRetrieveDestroyAPIView(FilesystemOwnerPermissionsMixin, Retr
 class FilesystemItemUpdateAPIView(FilesystemOwnerPermissionsMixin, UpdateAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = UpdateFilesystemItemSerializer
+
+class ShareFilesystemItemAPIView(FilesystemOwnerPermissionsMixin, UpdateAPIView):
+	queryset = FilesystemItem.objects.all()
+	serializer_class = ShareFilesystemItemSerializer

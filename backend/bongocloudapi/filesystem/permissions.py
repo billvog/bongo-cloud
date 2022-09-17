@@ -2,8 +2,9 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework import permissions
 from rest_framework.request import Request
-from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import FilesystemItem
+from authentication.authentication import JWTAuthentication
 
 """
 Only allow user to access if he's the owner of the FilesystemItem.

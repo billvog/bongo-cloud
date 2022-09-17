@@ -1,3 +1,5 @@
+# This script builds and copies the docker image to the deployment server.
+
 echo 'Input version for docker image:'
 read version
 

@@ -1,10 +1,12 @@
+import hashlib
 from django.contrib.auth import authenticate
 from rest_framework import status, permissions
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserSerializer, LoginUserSerializer, RegisterUserSerializer
+from .utils import generate_tokens_for_user, set_refresh_token_cookie
 
 class LoginAPIView(GenericAPIView):
 	serializer_class = LoginUserSerializer
@@ -14,15 +16,14 @@ class LoginAPIView(GenericAPIView):
 		serializer.is_valid(raise_exception=True)
 		data = serializer.validated_data
 
-		username = data['username']
+		email = data['email']
 		password = data['password']
 
-		user = authenticate(username=username, password=password)
+		user = authenticate(email=email, password=password)
 		if user is None:
-			return Response({ 'detail': 'You entered an incorrect username or password.' }, status=status.HTTP_400_BAD_REQUEST)
+			return Response({ 'detail': 'You entered an incorrect email or password.' }, status=status.HTTP_400_BAD_REQUEST)
 
-		refresh_token = RefreshToken.for_user(user)
-		access_token = refresh_token.access_token
+		(access_token, refresh_token) = generate_tokens_for_user(user)
 
 		body = {
 			'user': UserSerializer(user, context=self.get_serializer_context()).data
@@ -30,10 +31,12 @@ class LoginAPIView(GenericAPIView):
 
 		headers = {
 			'x-access-token': access_token,
-			'x-refresh-token': refresh_token
 		}
 
-		return Response(body, headers=headers, status=status.HTTP_200_OK)
+		response = Response(body, headers=headers, status=status.HTTP_200_OK)
+		set_refresh_token_cookie(response, refresh_token)
+
+		return response
 
 class RegisterAPIView(GenericAPIView):
 	serializer_class = RegisterUserSerializer
@@ -41,10 +44,12 @@ class RegisterAPIView(GenericAPIView):
 	def post(self, request, *args, **kwargs):
 		serializer = self.get_serializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
-		user = serializer.save()
+
+		gravatar_hash = hashlib.md5(serializer.validated_data['email'].encode()).hexdigest()
+
+		user = serializer.save(gravatar_hash=gravatar_hash)
 		
-		refresh_token = RefreshToken.for_user(user)
-		access_token = refresh_token.access_token
+		(access_token, refresh_token) = generate_tokens_for_user(user)
 
 		body = {
 			'user': UserSerializer(user, context=self.get_serializer_context()).data,
@@ -52,10 +57,12 @@ class RegisterAPIView(GenericAPIView):
 
 		headers = {
 			'x-access-token': str(access_token),
-			'x-refresh-token': str(refresh_token)
 		}
 
-		return Response(body, headers=headers, status=status.HTTP_201_CREATED)
+		response = Response(body, headers=headers, status=status.HTTP_201_CREATED)
+		set_refresh_token_cookie(response, refresh_token)
+
+		return response
 
 class MeAPIView(GenericAPIView):
 	serializer_class = UserSerializer

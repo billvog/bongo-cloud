@@ -1,5 +1,7 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
+
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -14,13 +16,13 @@ class UserSerializer(serializers.ModelSerializer):
 		]
 
 class LoginUserSerializer(serializers.ModelSerializer):
-	username = serializers.CharField(min_length=3, max_length=50)
-	password = serializers.CharField(write_only=True, min_length=6, max_length=150)
-
+	email = serializers.EmailField()
+	password = serializers.CharField(write_only=True)
+	
 	class Meta:
 		model = User
 		fields = [
-			'username',
+			'email',
 			'password'
 		]
 
@@ -28,7 +30,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 	first_name = serializers.CharField(min_length=2, max_length=50)
 	last_name = serializers.CharField(min_length=2, max_length=50)
 	username = serializers.CharField(min_length=3, max_length=50)
-	email = serializers.EmailField(min_length=4, max_length=50)
 	password = serializers.CharField(write_only=True, min_length=6, max_length=150)
 
 	class Meta:
