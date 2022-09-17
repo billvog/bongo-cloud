@@ -11,11 +11,12 @@ import { useAPICache } from "../../../shared-hooks/use-api-cache";
 export const LoginPage: React.FC = () => {
   const form = useForm({
     initialValues: {
-      username: "",
+      email: "",
       password: "",
     },
     validate: {
-      username: (value) => (value.length <= 0 ? "Username is required." : null),
+      email: (value) =>
+        /^\S+@\S+$/.test(value) ? null : "Invalid email format.",
       password: (value) => (value.length <= 0 ? "Password is required." : null),
     },
   });
@@ -26,7 +27,7 @@ export const LoginPage: React.FC = () => {
   const loginMutation = useMutation<
     APIResponse,
     any,
-    { username: string; password: string }
+    { email: string; password: string }
   >((values) => api("/auth/login/", "POST", values));
 
   return (
@@ -91,10 +92,7 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <h2 className="mt-0">Sign in Your Bongo Account</h2>
-          <TextInput
-            placeholder="Username"
-            {...form.getInputProps("username")}
-          />
+          <TextInput placeholder="Email" {...form.getInputProps("email")} />
           <PasswordInput
             placeholder="Password"
             {...form.getInputProps("password")}

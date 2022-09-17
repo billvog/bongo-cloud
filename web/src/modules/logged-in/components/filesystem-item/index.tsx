@@ -10,12 +10,12 @@ import {
 } from "react-icons/ai";
 import { BiMove, BiRename } from "react-icons/bi";
 import { HiOutlineDotsCircleHorizontal } from "react-icons/hi";
-import { IoTrash } from "react-icons/io5";
+import { IoShareOutline, IoTrash } from "react-icons/io5";
 import { FilesystemItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { getIconForFile } from "../../../../utils/get-icon-for-file";
 import { apiDownloadFile } from "../../../api";
-import { RenameItemModal } from "./rename-item-model";
+import { RenameItemModal } from "./rename-item-modal";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
 import { useMoveItem } from "./use-move-item";
 
@@ -34,6 +34,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
 
   const onDeleteClicked = () => deleteItem();
   const onRenameClicked = () => setRenameModelOpen(true);
+  const onShareClicked = () => {};
 
   const onDownloadClicked = () => {
     const download_loading_notif_id = "download_loading_notif_id:" + item.id;
@@ -116,10 +117,19 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
                 </Menu.Label>
                 <Menu.Divider />
                 <Menu.Item
+                  disabled={!item.is_file}
                   icon={<AiOutlineDownload size={16} />}
                   onClick={onDownloadClicked}
                 >
                   Download
+                </Menu.Item>
+                <Menu.Item
+                  disabled={true}
+                  // disabled={!item.is_file}
+                  icon={<IoShareOutline size={16} />}
+                  onClick={onShareClicked}
+                >
+                  Share
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
@@ -139,7 +149,10 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
                   Move
                 </Menu.Item>
                 <Menu.Divider />
-                <Menu.Item icon={<AiOutlineInfoCircle size={16} />}>
+                <Menu.Item
+                  disabled={true}
+                  icon={<AiOutlineInfoCircle size={16} />}
+                >
                   Info
                 </Menu.Item>
               </Menu.Dropdown>

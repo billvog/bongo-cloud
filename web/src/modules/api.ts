@@ -1,12 +1,5 @@
 import { FilesystemItem } from "../types";
-import { isJwtTokenExpired } from "../utils/jwt-expiration";
-import {
-  clearAuthTokens,
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  setRefreshToken,
-} from "./auth-tokens";
+import { getAccessToken, setAccessToken } from "./auth-tokens";
 
 const API_BASE_URL =
   process.env.NODE_ENV === "production"
@@ -22,88 +15,43 @@ export type APIResponse<Data = any> = {
   headers: Headers;
 };
 
-type APIRequestOptions = {
-  sendAsFormData: boolean;
+const updateAuthTokenFromResponseHeader = (headers: Headers) => {
+  const newAccessToken = headers.get("x-access-token");
+  if (newAccessToken) {
+    setAccessToken(newAccessToken);
+  }
 };
 
-const apiRefreshTokenIfNeeded = async (): Promise<string> => {
-  let accessToken = getAccessToken();
-  let refreshToken = getRefreshToken();
-
-  try {
-    if (refreshToken) {
-      if (!accessToken || isJwtTokenExpired(accessToken)) {
-        const response = await fetch(API_BASE_URL + "/auth/refresh-token/", {
-          method: "POST",
-          body: JSON.stringify({ refresh: refreshToken }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.status !== 200) {
-          throw new Error();
-        }
-
-        const refreshResponse = await response.json();
-        accessToken = setAccessToken(refreshResponse.access);
-      }
-    }
-  } catch {
-    clearAuthTokens();
+const updateAuthTokenFromXMLHttpRequest = (ajax: XMLHttpRequest) => {
+  const newAccessToken = ajax.getResponseHeader("x-access-token");
+  if (newAccessToken) {
+    setAccessToken(newAccessToken);
   }
-
-  return accessToken;
 };
 
 export const api = async <Data = any>(
   url: string,
   method: Method = "GET",
-  body: object | null = null,
-  options: APIRequestOptions = {
-    sendAsFormData: false,
-  }
+  body: object | null = null
 ): Promise<APIResponse<Data>> => {
-  let accessToken = await apiRefreshTokenIfNeeded();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
 
-  const headers: HeadersInit = {};
-
-  if (accessToken) {
-    headers["Authorization"] = `Bearer ${accessToken}`;
-  }
-
-  let requestBody: FormData | string | null = null;
-  if (body) {
-    if (options.sendAsFormData) {
-      requestBody = new FormData();
-      for (const [key, value] of Object.entries(body)) {
-        requestBody.append(key, value || "");
-      }
-    } else {
-      requestBody = JSON.stringify(body);
-      headers["Content-Type"] = "application/json";
-    }
-  }
+  let accessToken = getAccessToken();
+  headers["x-access-token"] = accessToken;
 
   const response = await fetch(API_BASE_URL + url, {
     method,
-    body: requestBody,
+    body: body ? JSON.stringify(body) : null,
     headers,
+    credentials: "include",
   });
 
   const data = method === "DELETE" ? null : await response.json();
   const resHeaders = response.headers;
 
-  // update tokens
-  const newAccessToken = resHeaders.get("x-access-token");
-  if (newAccessToken) {
-    setAccessToken(newAccessToken);
-  }
-
-  const newRefreshToken = resHeaders.get("x-refresh-token");
-  if (newRefreshToken) {
-    setRefreshToken(newRefreshToken);
-  }
+  updateAuthTokenFromResponseHeader(resHeaders);
 
   return {
     status: response.status,
@@ -121,10 +69,7 @@ export const apiUploadFile = async (
   },
   onProgress: (total: number, uploaded: number) => void
 ): Promise<APIResponse> => {
-  let accessToken = await apiRefreshTokenIfNeeded();
-  if (!accessToken) {
-    throw new Error("Not authenticated");
-  }
+  let accessToken = getAccessToken();
 
   const formData = new FormData();
   formData.append("parent", body.parent || "");
@@ -142,12 +87,15 @@ export const apiUploadFile = async (
     ajax.addEventListener("error", () => res(false), false);
     ajax.addEventListener("abort", () => res(false), false);
     ajax.open("POST", API_BASE_URL + "/filesystem/create/");
-    ajax.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+    ajax.setRequestHeader("x-access-token", accessToken);
+    ajax.withCredentials = true;
     ajax.send(formData);
   });
 
   const status = ajax.status;
   const data = JSON.parse(ajax.response);
+
+  updateAuthTokenFromXMLHttpRequest(ajax);
 
   return {
     status,
@@ -165,17 +113,18 @@ export const apiDownloadFile = async (
     return;
   }
 
-  let accessToken = await apiRefreshTokenIfNeeded();
-
   const headers: HeadersInit = {};
-  if (accessToken) {
-    headers["Authorization"] = `Bearer ${accessToken}`;
-  }
+
+  let accessToken = getAccessToken();
+  headers["x-access-token"] = accessToken;
 
   const response = await fetch(item.uploaded_file!, {
     method: "GET",
     headers,
+    credentials: "include",
   });
+
+  updateAuthTokenFromResponseHeader(response.headers);
 
   const contentLength = response.headers.get("content-length") || "0";
   const total = parseInt(contentLength);
