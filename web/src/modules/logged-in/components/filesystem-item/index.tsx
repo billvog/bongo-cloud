@@ -11,10 +11,13 @@ import {
 import { BiMove, BiRename } from "react-icons/bi";
 import { HiOutlineDotsCircleHorizontal } from "react-icons/hi";
 import { IoShareOutline, IoTrash } from "react-icons/io5";
+import { VscOpenPreview } from "react-icons/vsc";
 import { FilesystemItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { getIconForFile } from "../../../../utils/get-icon-for-file";
+import { getItemPreviewableKind } from "../../../../utils/previewable-item";
 import { apiDownloadFile } from "../../../api";
+import { PreviewModal } from "./preview-modal";
 import { RenameItemModal } from "./rename-item-modal";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
 import { useMoveItem } from "./use-move-item";
@@ -28,14 +31,16 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
   item,
   onClick,
 }) => {
+  const [previewModalOpen, setPreviewModelOpen] = useState(false);
   const deleteItem = useItemDeleteWithConfirmation(item);
   const [renameModalOpen, setRenameModelOpen] = useState(false);
   const moveItem = useMoveItem(item);
 
+  const onPreviewClicked = () => setPreviewModelOpen(true);
   const onDeleteClicked = () => deleteItem();
   const onRenameClicked = () => setRenameModelOpen(true);
   const onShareClicked = () => {};
-
+  const onMoveClicked = () => moveItem();
   const onDownloadClicked = () => {
     const download_loading_notif_id = "download_loading_notif_id:" + item.id;
 
@@ -83,8 +88,6 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
       });
   };
 
-  const onMoveClicked = () => moveItem();
-
   const ItemIcon = item.is_file ? getIconForFile(item.name) : AiFillFolder;
 
   return (
@@ -102,7 +105,7 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
         <div className="flex flex-row items-center space-x-3">
           <div className="text-sm">{prettyBytes(item.size)}</div>
           <div>
-            <Menu width={180} position="left" withArrow>
+            <Menu position="left" withArrow>
               <Menu.Target>
                 <ActionIcon
                   className="cursor-pointer text-orange-300 hover:text-orange-500"
@@ -112,9 +115,17 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Label className="text-gray-500 font-bold">
+                <Menu.Label className="text-gray-500 font-bold min-w-[180px] max-w-[50vmin] truncate">
                   {item.name}
                 </Menu.Label>
+                <Menu.Divider />
+                <Menu.Item
+                  disabled={!getItemPreviewableKind(item)}
+                  icon={<VscOpenPreview size={16} />}
+                  onClick={onPreviewClicked}
+                >
+                  Preview
+                </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
                   disabled={!item.is_file}
@@ -160,6 +171,11 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
           </div>
         </div>
       </div>
+      <PreviewModal
+        item={item}
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModelOpen(false)}
+      />
       <RenameItemModal
         item={item}
         isOpen={renameModalOpen}

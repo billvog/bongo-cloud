@@ -22,8 +22,8 @@ const updateAuthTokenFromResponseHeader = (headers: Headers) => {
   }
 };
 
-const updateAuthTokenFromXMLHttpRequest = (ajax: XMLHttpRequest) => {
-  const newAccessToken = ajax.getResponseHeader("x-access-token");
+const updateAuthTokenFromXMLHttpRequest = (xhr: XMLHttpRequest) => {
+  const newAccessToken = xhr.getResponseHeader("x-access-token");
   if (newAccessToken) {
     setAccessToken(newAccessToken);
   }
@@ -76,26 +76,26 @@ export const apiUploadFile = async (
   formData.append("name", body.name);
   formData.append("uploaded_file", body.uploaded_file);
 
-  var ajax = new XMLHttpRequest();
+  var xhr = new XMLHttpRequest();
   await new Promise((res) => {
-    ajax.upload.addEventListener(
+    xhr.upload.addEventListener(
       "progress",
       (e) => onProgress(e.total, e.loaded),
       false
     );
-    ajax.addEventListener("load", () => res(true), false);
-    ajax.addEventListener("error", () => res(false), false);
-    ajax.addEventListener("abort", () => res(false), false);
-    ajax.open("POST", API_BASE_URL + "/filesystem/create/");
-    ajax.setRequestHeader("x-access-token", accessToken);
-    ajax.withCredentials = true;
-    ajax.send(formData);
+    xhr.addEventListener("load", () => res(true), false);
+    xhr.addEventListener("error", () => res(false), false);
+    xhr.addEventListener("abort", () => res(false), false);
+    xhr.open("POST", API_BASE_URL + "/filesystem/create/");
+    xhr.setRequestHeader("x-access-token", accessToken);
+    xhr.withCredentials = true;
+    xhr.send(formData);
   });
 
-  const status = ajax.status;
-  const data = JSON.parse(ajax.response);
+  const status = xhr.status;
+  const data = JSON.parse(xhr.response);
 
-  updateAuthTokenFromXMLHttpRequest(ajax);
+  updateAuthTokenFromXMLHttpRequest(xhr);
 
   return {
     status,
@@ -113,47 +113,58 @@ export const apiDownloadFile = async (
     return;
   }
 
-  const headers: HeadersInit = {};
-
   let accessToken = getAccessToken();
-  headers["x-access-token"] = accessToken;
 
-  const response = await fetch(item.uploaded_file!, {
-    method: "GET",
-    headers,
-    credentials: "include",
+  var xhr = new XMLHttpRequest();
+  await new Promise((res) => {
+    xhr.open("GET", item.uploaded_file!, true);
+    xhr.setRequestHeader("x-access-token", accessToken);
+    xhr.responseType = "blob";
+    xhr.withCredentials = true;
+    xhr.addEventListener(
+      "progress",
+      (e) => onProgress(e.total, e.loaded),
+      false
+    );
+    xhr.addEventListener("load", () => res(true), false);
+    xhr.addEventListener("error", () => res(false), false);
+    xhr.addEventListener("abort", () => res(false), false);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 2) {
+        onProgress(1, 0);
+      }
+
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var url = window.URL.createObjectURL(xhr.response);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = item.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    };
+
+    xhr.send();
   });
 
-  updateAuthTokenFromResponseHeader(response.headers);
+  updateAuthTokenFromXMLHttpRequest(xhr);
+};
 
-  const contentLength = response.headers.get("content-length") || "0";
-  const total = parseInt(contentLength);
-  let loaded = 0;
+export const apiGetFilePreview = async (item: FilesystemItem) => {
+  if (!item.is_file) {
+    return null;
+  }
 
-  const responseWithProgress = new Response(
-    new ReadableStream({
-      async start(controller) {
-        if (!response.body) return;
-        const reader = response.body.getReader();
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          loaded += value.byteLength;
-          onProgress(total, loaded);
-          controller.enqueue(value);
-        }
-        controller.close();
-      },
-    })
-  );
+  let accessToken = getAccessToken();
 
-  const blob = await responseWithProgress.blob();
+  const response = await fetch(item.uploaded_file!, {
+    credentials: "include",
+    headers: {
+      "x-access-token": accessToken,
+    },
+  });
 
-  var url = window.URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = item.name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 };

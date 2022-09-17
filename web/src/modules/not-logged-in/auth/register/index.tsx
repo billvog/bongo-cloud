@@ -94,7 +94,7 @@ export const RegisterPage: React.FC = () => {
                 loading: false,
               });
 
-              navigate("/files");
+              navigate("/");
             },
             onError: (error) => {
               console.log(error);

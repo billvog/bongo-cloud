@@ -70,11 +70,8 @@ export const MyFilesPage: React.FC = () => {
   return (
     <Layout>
       <>
-        <div className="relative">
-          <LoadingOverlay visible={itemsQuery.status === "loading"} />
-        </div>
-        <div className="flex flex-col h-full">
-          <div className="flex-1 flex flex-col h-full">
+        <div className="flex flex-col h-full bg-gray-100">
+          <div className="flex-1 flex flex-col h-full relative">
             <div className="flex flex-row justify-between items-center px-4 py-2 border-solid border-0 border-b-2 border-b-gray-200 bg-gray-100 text-gray-600">
               <div
                 className="flex items-center space-x-4"
@@ -110,7 +107,7 @@ export const MyFilesPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Menu width={180} position="left">
+                <Menu width={180} position="bottom-end" withArrow offset={0}>
                   <Menu.Target>
                     <ActionIcon
                       className="cursor-pointer text-orange-400 hover:text-orange-500"
@@ -136,7 +133,8 @@ export const MyFilesPage: React.FC = () => {
                 </Menu>
               </div>
             </div>
-            <div className="flex flex-col h-full overflow-y-auto">
+            <div className="flex flex-col h-full overflow-y-auto relative">
+              <LoadingOverlay visible={itemsQuery.isLoading} overlayBlur={2} />
               {items.length <= 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center">
                   <img
@@ -161,7 +159,7 @@ export const MyFilesPage: React.FC = () => {
             </div>
           </div>
           {/* footer */}
-          <div className="flex flex-row items-center bg-orange-200 text-orange-500 px-4 py-3">
+          <div className="fixed z-10 bottom-0 w-full flex flex-row items-center bg-orange-200 text-orange-500 px-4 py-3">
             <div className="font-semibold">
               Folder size:{" "}
               <span className="font-bold text-orange-600">

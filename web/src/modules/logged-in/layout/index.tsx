@@ -88,11 +88,6 @@ export const Layout: React.FC<LayoutProps> = (props) => {
           </MediaQuery>
         </Header>
       }
-      styles={{
-        main: {
-          backgroundColor: "#f8f8f8",
-        },
-      }}
     >
       {props.children}
     </AppShell>
