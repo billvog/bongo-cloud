@@ -166,7 +166,7 @@ else:
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
-    'x-access-token'
+    'x-access-token',
 ]
 
 CORS_EXPOSE_HEADERS = [

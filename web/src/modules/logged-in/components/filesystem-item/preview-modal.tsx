@@ -43,6 +43,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       overlayOpacity={0.7}
       padding={0}
       withCloseButton={false}
+      shadow={"0"}
       styles={{
         body: {
           background: "black",
@@ -50,6 +51,7 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           width: "fit-content",
         },
         modal: {
+          background: "black",
           width: "fit-content",
         },
       }}
@@ -64,7 +66,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           alt="preview"
           className="mx-auto object-contain max-w-full max-h-full"
           style={{
-            height: "70vmin",
+            width: "fit-content",
+            height: "70vh",
           }}
         />
       ) : previewableKind === "video" ? (
@@ -74,6 +77,10 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           style={{
             height: "70vmin",
           }}
+          loop
+          muted
+          autoPlay={false}
+          playsInline={false}
           controls={true}
         />
       ) : null}

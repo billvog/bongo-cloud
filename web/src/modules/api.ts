@@ -1,5 +1,7 @@
 import { FilesystemItem } from "../types";
 import { getAccessToken, setAccessToken } from "./auth-tokens";
+import "mrmime";
+import { lookup } from "mrmime";
 
 const API_BASE_URL =
   process.env.NODE_ENV === "production"
@@ -166,5 +168,12 @@ export const apiGetFilePreview = async (item: FilesystemItem) => {
   });
 
   const blob = await response.blob();
-  return URL.createObjectURL(blob);
+
+  const mimeType = lookup(item.name);
+  if (!mimeType) {
+    return URL.createObjectURL(blob);
+  }
+
+  const newBlob = new Blob([await blob.arrayBuffer()], { type: mimeType });
+  return URL.createObjectURL(newBlob);
 };
