@@ -26,7 +26,7 @@ def generate_tokens_for_user(user):
 	return (access_token, refresh_token)
 
 def set_refresh_token_cookie(response: Response, refresh_token: str):
-	response.set_cookie('refresh_token', refresh_token, httponly=True)
+	response.set_cookie('refresh_token', refresh_token, expires=datetime.now(tz=timezone.utc) + timedelta(days=7), httponly=True)
 
 def decode_access_token(access_token):
 	return jwt.decode(access_token, settings.JWT_ACCESS_TOKEN_SECRET, algorithms=['HS256'])
