@@ -4,6 +4,17 @@ from django.conf import settings
 
 User = settings.AUTH_USER_MODEL
 
+def filesystemitem_gen_path(item):
+	path = ''
+	if item.parent is not None:
+		parent = item.parent
+		while (parent is not None):
+			path = '/' + parent.name + path
+			parent = parent.parent
+
+	path += '/' + item.name
+	return path
+
 def user_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/u_<id>/<fsi_id>
     return 'u_{0}/{1}'.format(instance.owner.id, instance.id)
@@ -14,6 +25,7 @@ class FilesystemItem(models.Model):
 	parent = models.ForeignKey('FilesystemItem', on_delete=models.CASCADE, null=True, blank=True)
 	name = models.CharField(max_length=1024)
 	filesize = models.PositiveBigIntegerField(default=0)
+	path = models.CharField(max_length=4096)
 	is_file = models.BooleanField()
 	uploaded_file = models.FileField(upload_to=user_directory_path, null=True, blank=True)
 	allow_any = models.BooleanField(default=False)
@@ -23,6 +35,10 @@ class FilesystemItem(models.Model):
 	def __str__(self):
 		return self.name
 
+	def save(self, *args, **kwargs):
+		self.path = filesystemitem_gen_path(self)
+		super(FilesystemItem, self).save(*args, **kwargs)
+
 	def size(self):
 		if not self.is_file:
 			totalsize = 0
@@ -31,14 +47,3 @@ class FilesystemItem(models.Model):
 			return totalsize
 		else:
 			return self.filesize
-
-	def path(self):
-		path = ''
-		if self.parent is not None:
-			parent = self.parent
-			while (parent is not None):
-				path = '/' + parent.name + path
-				parent = parent.parent
-
-		path += '/' + self.name
-		return path

@@ -1,5 +1,6 @@
+from urllib import parse as parse_url
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveDestroyAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
@@ -7,35 +8,50 @@ from .models import FilesystemItem
 from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer, ShareFilesystemItemSerializer, UpdateFilesystemItemSerializer
 from .permissions import FilesystemOwnerPermissionsMixin
 
+class FilesystemItemRetrieveAPIView(FilesystemOwnerPermissionsMixin, RetrieveAPIView):
+	serializer_class = FilesystemItemSerializer
+
+class FilesystemItemRetrieveFromPathAPIView(FilesystemOwnerPermissionsMixin, RetrieveAPIView):
+	serializer_class = FilesystemItemSerializer
+
+	def retrieve(self, request, *args, **kwargs):
+		path = parse_url.unquote(kwargs['path'])
+		item = get_object_or_404(FilesystemItem, path=path)
+		item_serializer = self.get_serializer(item, many=False)
+		item_data = item_serializer.data
+		return Response({ 'item': item_data })
+
 class FilesystemItemListAPIView(FilesystemOwnerPermissionsMixin, ListAPIView):
 	queryset = FilesystemItem.objects.all().order_by('is_file', 'name', '-created_at')
 	serializer_class = FilesystemItemSerializer
 
 	def list(self, request, *args, **kwargs):
 		if 'pk' in kwargs:
-			item = FilesystemItem.objects.get(pk=kwargs['pk'])
+			item = get_object_or_404(FilesystemItem, pk=kwargs['pk'])
+		elif 'path' in kwargs:
+			path = parse_url.unquote(kwargs['path'])
+			item = get_object_or_404(FilesystemItem, path=path)
+		else:
+			item = None
+
+		user = request.user
+		qs = self.get_queryset().filter(owner=user)
+		qs = qs.filter(parent=item)
+		
+		if item is not None:
+			if not item.owner == user:
+				return Response(None, status=status.HTTP_404_NOT_FOUND)
+
 			item_serializer = self.get_serializer(item, many=False)
 			item_data = item_serializer.data
 		else:
 			item_data = None
 
-		subitems_queryset = self.filter_queryset(self.get_queryset())
+		subitems_queryset = self.filter_queryset(qs)
 		subitems_serializer = self.get_serializer(subitems_queryset, many=True)
 		subitems_data = subitems_serializer.data
 
 		return Response({ 'current': item_data, 'items': subitems_data })
-
-	def get_queryset(self):
-		request = self.request
-		user = request.user
-		qs = super().get_queryset().filter(owner=user)
-
-		if 'pk' in self.kwargs:
-			qs = qs.filter(parent__pk=self.kwargs['pk'])
-		else:
-			qs = qs.filter(parent=None)
-
-		return qs
 
 class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 	serializer_class = CreateFilesystemItemSerializer
@@ -71,7 +87,7 @@ class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 		return Response(serialized_item, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class FilesystemItemRetrieveDestroyAPIView(FilesystemOwnerPermissionsMixin, RetrieveDestroyAPIView):
+class FilesystemItemDestroyAPIView(FilesystemOwnerPermissionsMixin, DestroyAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
 	

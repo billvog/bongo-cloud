@@ -19,8 +19,8 @@ export const MyRoutes: React.FC = () => {
       {auth.user ? (
         // Logged in
         <>
-          <Route path="/" element={<Navigate to="/files" />} />
-          <Route path="/files" element={<MyFilesPage />} />
+          <Route path="/" element={<Navigate to="/-/" />} />
+          <Route path="/-/*" element={<MyFilesPage />} />
         </>
       ) : (
         // Not logged in

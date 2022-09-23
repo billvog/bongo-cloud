@@ -2,10 +2,14 @@
 
 ### Change /files route to /-/:path
 
-[ ] Make a route on backend to return filesystem item with subitems by path.
-[ ] Implement the logic on the frontend and change the route whenever the user changes path.
+[x] Make a route on backend to retrieve filesystem item by path.
+[x] Implement the logic on the frontend and change the route whenever the user changes path.
 
 Everything after `/-/` will be the path that will be requested from the api.
+
+#### Problem that needs to be solved:
+
+When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**my/folder**) the page renders two times and makes two requests to the server to find the id of the requested item from the path. Some higher level component causes it to re-render.
 
 ### Implement file-sharing.
 

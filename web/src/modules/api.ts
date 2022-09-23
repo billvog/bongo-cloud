@@ -50,6 +50,10 @@ export const api = async <Data = any>(
     credentials: "include",
   });
 
+  if (response.status >= 500) {
+    throw new Error("Internal server error.");
+  }
+
   const data = method === "DELETE" ? null : await response.json();
   const resHeaders = response.headers;
 

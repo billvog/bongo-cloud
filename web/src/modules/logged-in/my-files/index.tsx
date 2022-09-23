@@ -1,10 +1,12 @@
 import { ActionIcon, LoadingOverlay, Menu } from "@mantine/core";
+import { showNotification } from "@mantine/notifications";
 import prettyBytes from "pretty-bytes";
 import React, { useEffect, useState } from "react";
 import { AiOutlineCloudUpload, AiOutlinePlus } from "react-icons/ai";
 import { BsFolderPlus } from "react-icons/bs";
 import { IoMdArrowBack } from "react-icons/io";
 import { useQuery } from "react-query";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FilesystemItem } from "../../../types";
 import { api } from "../../api";
 import { useAuth } from "../../auth-context";
@@ -15,6 +17,9 @@ import { CreateFolderModal } from "./create-folder-modal";
 import { UploadFileModal } from "./upload-file-modal";
 
 export const MyFilesPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const filesystem = useFilesystem();
 
   const [currentItemId, setCurrentItemId] =
@@ -25,11 +30,55 @@ export const MyFilesPage: React.FC = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
 
+  const [itemsQueryEnabled, setItemsQueryEnabled] = useState(false);
   const itemsQuery = useQuery(
     ["filesystem", currentItemId ? currentItemId : null],
     () => {
       return api(`/filesystem/${currentItemId ? currentItemId + "/" : ""}`);
+    },
+    {
+      enabled: itemsQueryEnabled,
     }
+  );
+
+  useEffect(
+    () => {
+      const currentPath = location.pathname.slice(2);
+      console.log(currentPath);
+      if (currentPath === "/") {
+        setItemsQueryEnabled(true);
+        return;
+      }
+
+      const encodedCurrentPath = encodeURIComponent(
+        encodeURIComponent(currentPath)
+      );
+
+      const displayErrorNotification = () => {
+        showNotification({
+          id: "path_couldnt_found_notif_id",
+          title: `Couldn't find "${currentPath}"`,
+          message: `"${currentPath}" doesn't seem to be in your files.`,
+          color: "red",
+        });
+      };
+
+      api(`/filesystem/${encodedCurrentPath}/`)
+        .then((response) => {
+          if (response.ok) {
+            setCurrentItemId(response.data.item?.id || null);
+          } else {
+            displayErrorNotification();
+          }
+
+          setItemsQueryEnabled(true);
+        })
+        .catch(() => {
+          displayErrorNotification();
+        });
+    },
+    // eslint-disable-next-line
+    []
   );
 
   useEffect(() => {
@@ -42,6 +91,7 @@ export const MyFilesPage: React.FC = () => {
   useEffect(
     () => {
       filesystem.setCurrent(currentItem);
+      navigate(`/-${currentItem?.path || "/"}`);
     },
     // eslint-disable-next-line
     [currentItem]
