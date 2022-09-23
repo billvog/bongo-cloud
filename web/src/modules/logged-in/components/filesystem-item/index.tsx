@@ -61,13 +61,16 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
       disallowClose: true,
     });
 
-    apiDownloadFile(item, (total, recieved) => {
+    apiDownloadFile(item, (xhr, total, recieved) => {
       updateNotification({
         id: download_loading_notif_id,
         title: "Downloading...",
         message: `"${item.name}" is downloading...`,
         icon: RingProgressComponent((recieved / total) * 100),
         autoClose: false,
+        onClose: () => {
+          xhr.abort();
+        },
       });
     })
       .then(() => {

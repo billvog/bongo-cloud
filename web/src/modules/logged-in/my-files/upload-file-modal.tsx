@@ -40,7 +40,11 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
       parent: string | null;
       name: string;
       uploaded_file: Blob;
-      onProgress: (total: number, uploaded: number) => void;
+      onProgress: (
+        xhr: XMLHttpRequest,
+        total: number,
+        uploaded: number
+      ) => void;
     }
   >((values) => {
     return apiUploadFile(
@@ -49,7 +53,7 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
         name: values.name,
         uploaded_file: values.uploaded_file,
       },
-      (total, uploaded) => values.onProgress(total, uploaded)
+      (xhr, total, uploaded) => values.onProgress(xhr, total, uploaded)
     );
   });
 
@@ -70,12 +74,15 @@ export const UploadFileModal: React.FC<UploadFileModalProps> = ({
         parent: filesystem.current?.id || null,
         name: file.name,
         uploaded_file: blob,
-        onProgress: (total, uploaded) => {
+        onProgress: (xhr, total, uploaded) => {
           updateNotification({
             id: upload_file_notif,
             message: `"${file.name}" is uploading...`,
             icon: RingProgressComponent((uploaded / total) * 100),
             autoClose: false,
+            onClose: () => {
+              xhr.abort();
+            },
           });
         },
       },

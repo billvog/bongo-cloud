@@ -73,7 +73,7 @@ export const apiUploadFile = async (
     name: string;
     uploaded_file: Blob;
   },
-  onProgress: (total: number, uploaded: number) => void
+  onProgress: (xhr: XMLHttpRequest, total: number, uploaded: number) => void
 ): Promise<APIResponse> => {
   let accessToken = getAccessToken();
 
@@ -86,7 +86,7 @@ export const apiUploadFile = async (
   await new Promise((res) => {
     xhr.upload.addEventListener(
       "progress",
-      (e) => onProgress(e.total, e.loaded),
+      (e) => onProgress(xhr, e.total, e.loaded),
       false
     );
     xhr.addEventListener("load", () => res(true), false);
@@ -113,7 +113,7 @@ export const apiUploadFile = async (
 
 export const apiDownloadFile = async (
   item: FilesystemItem,
-  onProgress: (total: number, recieved: number) => void
+  onProgress: (xhr: XMLHttpRequest, total: number, recieved: number) => void
 ) => {
   if (!item.is_file) {
     return;
@@ -129,7 +129,7 @@ export const apiDownloadFile = async (
     xhr.withCredentials = true;
     xhr.addEventListener(
       "progress",
-      (e) => onProgress(e.total, e.loaded),
+      (e) => onProgress(xhr, e.total, e.loaded),
       false
     );
     xhr.addEventListener("load", () => res(true), false);
@@ -137,7 +137,7 @@ export const apiDownloadFile = async (
     xhr.addEventListener("abort", () => res(false), false);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 2) {
-        onProgress(1, 0);
+        onProgress(xhr, 1, 0);
       }
 
       if (xhr.readyState === 4 && xhr.status === 200) {

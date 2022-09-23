@@ -43,13 +43,13 @@ export const MyFilesPage: React.FC = () => {
 
   useEffect(
     () => {
-      const currentPath = location.pathname.slice(2);
-      console.log(currentPath);
+      let currentPath = location.pathname.slice(2);
       if (currentPath === "/") {
         setItemsQueryEnabled(true);
         return;
       }
 
+      currentPath = decodeURIComponent(currentPath);
       const encodedCurrentPath = encodeURIComponent(
         encodeURIComponent(currentPath)
       );

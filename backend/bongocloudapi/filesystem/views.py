@@ -74,7 +74,11 @@ class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 		is_file = False
 		filesize = 0
 
-		uploaded_file = data['uploaded_file']
+		try:
+			uploaded_file = data['uploaded_file']
+		except Exception:
+			return Response(None, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 		if uploaded_file is not None:
 			is_file = True
 			filesize = uploaded_file.size

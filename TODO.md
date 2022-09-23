@@ -11,6 +11,10 @@ Everything after `/-/` will be the path that will be requested from the api.
 
 When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**my/folder**) the page renders two times and makes two requests to the server to find the id of the requested item from the path. Some higher level component causes it to re-render.
 
+### Letting the user cancel upload or download operations.
+
+[x] Abort XMLHttpRequest when the up/download notification gets closed from the user.
+
 ### Implement file-sharing.
 
 [ ] Create a new model with the following columns:
