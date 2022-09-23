@@ -19,7 +19,7 @@ export const useMoveItem = (item: FilesystemItem) => {
       name: string;
       parent: string | null;
     }
-  >((values) => api(`/filesystem/${item.id}/update/`, "PATCH", values));
+  >((values) => api(`/filesystem/${item.id}/move/`, "PATCH", values));
 
   const move_item_notif_id = `move_item_notif_id:${item.id}`;
   const moveItem = () => {

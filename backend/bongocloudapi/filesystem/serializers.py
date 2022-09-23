@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import FilesystemItem
+from .utils import filesystemitem_gen_path
 
 class FilesystemItemSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -48,7 +49,7 @@ class CreateFilesystemItemSerializer(serializers.ModelSerializer):
 			raise serializers.ValidationError(f'{value.name} is not a folder.')
 		return value
 
-class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
+class MoveFilesystemItemSerializer(serializers.ModelSerializer):
 	path = serializers.CharField(read_only=True)
 
 	class Meta:
@@ -59,6 +60,24 @@ class UpdateFilesystemItemSerializer(serializers.ModelSerializer):
 			'name',
 			'path',
 		]
+
+	"""
+	This function iterates recursively in the item's children and 
+	regenerates the path because a parent was renamed or moved.
+	"""
+	def iterate_children(self, item):
+		children = item.filesystemitem_set.all()
+		for child in children:
+			child.path = filesystemitem_gen_path(child)
+			child.save()
+			if not child.is_file:
+				self.iterate_children(child)
+
+	def save(self, **kwargs):
+		super().save(**kwargs)
+		item = self.instance
+		self.iterate_children(item)
+		return item
 
 	def validate_name(self, value):
 		request = self.context.get('request')

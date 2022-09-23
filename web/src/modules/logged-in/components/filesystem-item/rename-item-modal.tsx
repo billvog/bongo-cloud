@@ -38,7 +38,7 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
       parent: string | null;
     }
   >((values) => {
-    return api(`/filesystem/${item.id}/update/`, "PATCH", values);
+    return api(`/filesystem/${item.id}/move/`, "PATCH", values);
   });
 
   useEffect(
