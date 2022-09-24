@@ -4,7 +4,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from .models import FilesystemItem
-from .permissions import IsOwner
+from .permissions import IsOwnerOfItem
 
 """
 Middleware to serve media files with permission check
@@ -28,7 +28,7 @@ class ServeUserUploadsMiddleware:
 				file_id = path.split('/')[-1]
 				file = get_object_or_404(FilesystemItem, pk=file_id)
 
-				if not file.allow_any and not IsOwner.does_user_has_permission(IsOwner, request, file):
+				if not file.allow_any and not IsOwnerOfItem.does_user_has_permission(IsOwnerOfItem, request, file):
 					return JsonResponse({
 						'error': "You are not allowed to access this file."
 					}, status=401)

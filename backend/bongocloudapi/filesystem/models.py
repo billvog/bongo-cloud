@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
@@ -47,3 +48,18 @@ class FilesystemItem(models.Model):
 			return totalsize
 		else:
 			return self.filesize
+
+class FilesystemSharedItem(models.Model):
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	item = models.ForeignKey('FilesystemItem', on_delete=models.CASCADE, null=False)
+	allowed_users = models.ManyToManyField(User, blank=True)
+	has_password = models.BooleanField(default=False)
+	password = models.CharField(max_length=100, null=True, blank=True)
+	does_expire = models.BooleanField(default=False)
+	expiry = models.DateTimeField(null=True, blank=True)
+
+	def is_expired(self) -> bool:
+		if not self.does_expire or self.expiry is None:
+			return False
+		return self.expiry < timezone.now()
+		

@@ -1,7 +1,12 @@
 from rest_framework import serializers
 
-from .models import FilesystemItem
-from .utils import filesystemitem_gen_path
+from authentication.serializers import MinimalUserSerializer
+
+from .models import (
+	FilesystemItem,
+	FilesystemSharedItem,
+	filesystemitem_gen_path,
+)
 
 class FilesystemItemSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -114,16 +119,35 @@ class MoveFilesystemItemSerializer(serializers.ModelSerializer):
 
 		return value
 
-class ShareFilesystemItemSerializer(serializers.ModelSerializer):
+class FilesystemSharedItemSerializer(serializers.ModelSerializer):
+	item = FilesystemItemSerializer()
+	allowed_users = MinimalUserSerializer(many=True)
+
 	class Meta:
-		model = FilesystemItem
+		model = FilesystemSharedItem
 		fields = [
 			'id',
-			'allow_any',
+			'item',
+			'allowed_users',
+			'has_password',
+			'does_expire',
+			'expiry',
+			'is_expired'
 		]
-	
-	def validate_allow_any(self, value):
-		instance = self.instance
-		if not instance.is_file:
-			raise serializers.ValidationError("Cannot share folders.")
-		return value
+
+class CreateFilesystemSharedItemSerializer(serializers.ModelSerializer):
+	item = FilesystemItemSerializer(read_only=True)
+	has_password = serializers.BooleanField(default=False, read_only=True)
+	does_expire = serializers.BooleanField(default=False, read_only=True)
+
+	class Meta:
+		model = FilesystemSharedItem
+		fields = [
+			'id',
+			'item',
+			'allowed_users',
+			'has_password',
+			'password',
+			'does_expire',
+			'expiry'
+		]

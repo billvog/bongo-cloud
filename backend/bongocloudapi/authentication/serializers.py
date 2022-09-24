@@ -12,7 +12,20 @@ class UserSerializer(serializers.ModelSerializer):
 			'last_name',
 			'username',
 			'email',
+			'gravatar_hash',
 			'date_joined'
+		]
+
+class MinimalUserSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = User
+		fields = [
+			'id',
+			'first_name',
+			'last_name',
+			'username',
+			'email',
+			'gravatar_hash'
 		]
 
 class LoginUserSerializer(serializers.ModelSerializer):

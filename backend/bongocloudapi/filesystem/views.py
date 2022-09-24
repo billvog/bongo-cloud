@@ -3,15 +3,17 @@ from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView, UpdateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import make_password
 
-from .models import FilesystemItem
-from .serializers import CreateFilesystemItemSerializer, FilesystemItemSerializer, ShareFilesystemItemSerializer, MoveFilesystemItemSerializer
-from .permissions import FilesystemOwnerPermissionsMixin
+from .models import FilesystemItem, FilesystemSharedItem
+from .serializers import CreateFilesystemItemSerializer, CreateFilesystemSharedItemSerializer, FilesystemItemSerializer, FilesystemSharedItemSerializer, MoveFilesystemItemSerializer
+from .permissions import FilesystemItemOwnerPermissionsMixin, FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin
 
-class FilesystemItemRetrieveAPIView(FilesystemOwnerPermissionsMixin, RetrieveAPIView):
+class FilesystemItemRetrieveAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
+	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
 
-class FilesystemItemRetrieveFromPathAPIView(FilesystemOwnerPermissionsMixin, RetrieveAPIView):
+class FilesystemItemRetrieveFromPathAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
 	serializer_class = FilesystemItemSerializer
 
 	def retrieve(self, request, *args, **kwargs):
@@ -21,7 +23,7 @@ class FilesystemItemRetrieveFromPathAPIView(FilesystemOwnerPermissionsMixin, Ret
 		item_data = item_serializer.data
 		return Response({ 'item': item_data })
 
-class FilesystemItemListAPIView(FilesystemOwnerPermissionsMixin, ListAPIView):
+class FilesystemItemListAPIView(FilesystemItemOwnerPermissionsMixin, ListAPIView):
 	queryset = FilesystemItem.objects.all().order_by('is_file', 'name', '-created_at')
 	serializer_class = FilesystemItemSerializer
 
@@ -53,7 +55,7 @@ class FilesystemItemListAPIView(FilesystemOwnerPermissionsMixin, ListAPIView):
 
 		return Response({ 'current': item_data, 'items': subitems_data })
 
-class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
+class FilesystemCreateAPIView(FilesystemItemOwnerPermissionsMixin, CreateAPIView):
 	serializer_class = CreateFilesystemItemSerializer
 
 	def post(self, request, *args, **kwargs):
@@ -90,15 +92,48 @@ class FilesystemCreateAPIView(FilesystemOwnerPermissionsMixin, CreateAPIView):
 		headers = self.get_success_headers(serialized_item)
 		return Response(serialized_item, status=status.HTTP_201_CREATED, headers=headers)
 
-
-class FilesystemItemDestroyAPIView(FilesystemOwnerPermissionsMixin, DestroyAPIView):
+class FilesystemItemDestroyAPIView(FilesystemItemOwnerPermissionsMixin, DestroyAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
 	
-class MoveFilesystemItemAPIView(FilesystemOwnerPermissionsMixin, UpdateAPIView):
+class MoveFilesystemItemAPIView(FilesystemItemOwnerPermissionsMixin, UpdateAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = MoveFilesystemItemSerializer
 
-class ShareFilesystemItemAPIView(FilesystemOwnerPermissionsMixin, UpdateAPIView):
-	queryset = FilesystemItem.objects.all()
-	serializer_class = ShareFilesystemItemSerializer
+
+class RetrieveFilesystemSharedItemAPIVIew(
+	FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin,
+	RetrieveAPIView
+):
+	queryset = FilesystemSharedItem.objects.all()
+	serializer_class = FilesystemSharedItemSerializer
+
+class CreateFilesystemSharedItemAPIView(FilesystemItemOwnerPermissionsMixin, CreateAPIView):
+	serializer_class = CreateFilesystemSharedItemSerializer
+
+	def post(self, request, *args, **kwargs):
+		item_id = kwargs['pk']
+		item = get_object_or_404(FilesystemItem, pk=item_id)
+
+		serializer = self.get_serializer(data=request.data)
+
+		# logic to find users from their codes and store them in data
+
+		serializer.is_valid(raise_exception=True)
+
+		data = serializer.validated_data
+
+		if 'password' in data and data['password'] is not None:
+			data['has_password'] = True
+			password_hash = make_password(data['password'])
+		else:
+			password_hash = None
+
+		data['does_expire'] = 'expiry' in data and data['expiry'] is not None
+
+		created_fileshare = serializer.save(item=item, password=password_hash)
+
+		serialized_fileshare = FilesystemSharedItemSerializer(created_fileshare, context=self.get_serializer_context()).data
+
+		headers = self.get_success_headers(serialized_fileshare)
+		return Response(serialized_fileshare, status=status.HTTP_201_CREATED, headers=headers)

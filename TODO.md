@@ -17,13 +17,17 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 
 ### Implement file-sharing.
 
-[ ] Create a new model with the following columns:
+[x] Create a new model with the following columns:
 
 - id (with this the users will be able to download the file)
 - filesystem_item (the item being shared)
 - allowed_users (a list of the users that are able to access the shared file)
 - password (a password to protect the file or null)
 - expiry (a date beyond which the file won't be downloadable anymore or null)
+
+[-] Create api views to create, retrieve and delete shares.
+
+[ ] Replace the middleware we currently have to download files with a new api endpoint.
 
 ### Zipping directories for download
 
