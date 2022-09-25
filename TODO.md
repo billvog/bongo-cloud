@@ -27,7 +27,9 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 
 [-] Create api views to create, retrieve and delete shares.
 
-[ ] Replace the middleware we currently have to download files with a new api endpoint.
+[x] Replace the middleware we currently have to download files with a new api endpoint.
+
+[ ] Implement functionality on frontend.
 
 ### Zipping directories for download
 
