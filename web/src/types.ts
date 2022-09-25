@@ -14,7 +14,7 @@ export type FilesystemItem = {
   is_file: boolean;
   size: number;
   path: string;
-  uploaded_file: string | null;
+  download_url: string;
   created_at: Date;
   updated_at: Date;
 };
@@ -23,4 +23,13 @@ export type FilesystemItemEditable = {
   parent: string | null;
   name: string;
   path: string;
+};
+
+export type FilesystemSharedItem = {
+  id: string;
+  item: FilesystemItem;
+  has_password: boolean;
+  does_expire: true;
+  expiry: Date | null;
+  download_url: string;
 };

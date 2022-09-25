@@ -19,6 +19,7 @@ import { getItemPreviewableKind } from "../../../../utils/previewable-item";
 import { apiDownloadFile } from "../../../api";
 import { PreviewModal } from "./preview-modal";
 import { RenameItemModal } from "./rename-item-modal";
+import { ShareItemModal } from "./share-item-modal";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
 import { useMoveItem } from "./use-move-item";
 
@@ -31,16 +32,18 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
   item,
   onClick,
 }) => {
-  const [previewModalOpen, setPreviewModelOpen] = useState(false);
-  const deleteItem = useItemDeleteWithConfirmation(item);
-  const [renameModalOpen, setRenameModelOpen] = useState(false);
   const moveItem = useMoveItem(item);
+  const deleteItem = useItemDeleteWithConfirmation(item);
+  const [previewModalOpen, setPreviewModelOpen] = useState(false);
+  const [shareModalOpen, setShareModelOpen] = useState(false);
+  const [renameModalOpen, setRenameModelOpen] = useState(false);
 
-  const onPreviewClicked = () => setPreviewModelOpen(true);
   const onDeleteClicked = () => deleteItem();
-  const onRenameClicked = () => setRenameModelOpen(true);
-  const onShareClicked = () => {};
   const onMoveClicked = () => moveItem();
+  const onPreviewClicked = () => setPreviewModelOpen(true);
+  const onShareClicked = () => setShareModelOpen(true);
+  const onRenameClicked = () => setRenameModelOpen(true);
+
   const onDownloadClicked = () => {
     const download_loading_notif_id = "download_loading_notif_id:" + item.id;
 
@@ -138,10 +141,12 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
                   Download
                 </Menu.Item>
                 <Menu.Item
-                  disabled={true}
-                  // disabled={!item.is_file}
+                  disabled={!item.is_file}
                   icon={<IoShareOutline size={16} />}
                   onClick={onShareClicked}
+                  title={
+                    item.is_file ? "Folders can't be shared yet" : undefined
+                  }
                 >
                   Share
                 </Menu.Item>
@@ -178,6 +183,11 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
         item={item}
         isOpen={previewModalOpen}
         onClose={() => setPreviewModelOpen(false)}
+      />
+      <ShareItemModal
+        item={item}
+        isOpen={shareModalOpen}
+        onClose={() => setShareModelOpen(false)}
       />
       <RenameItemModal
         item={item}

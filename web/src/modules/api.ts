@@ -113,17 +113,20 @@ export const apiUploadFile = async (
 
 export const apiDownloadFile = async (
   item: FilesystemItem,
-  onProgress: (xhr: XMLHttpRequest, total: number, recieved: number) => void
-) => {
-  if (!item.is_file) {
-    return;
-  }
-
+  onProgress: (xhr: XMLHttpRequest, total: number, recieved: number) => void,
+  download_url: string | undefined = undefined,
+  method: Method = "GET",
+  body: any = undefined
+): Promise<APIResponse> => {
   let accessToken = getAccessToken();
 
   var xhr = new XMLHttpRequest();
   await new Promise((res) => {
-    xhr.open("GET", item.uploaded_file!, true);
+    xhr.open(
+      method,
+      typeof download_url === "string" ? download_url : item.download_url,
+      true
+    );
     xhr.setRequestHeader("x-access-token", accessToken);
     xhr.responseType = "blob";
     xhr.withCredentials = true;
@@ -149,12 +152,39 @@ export const apiDownloadFile = async (
         a.click();
         a.remove();
       }
+
+      if (xhr.status !== 200) {
+        xhr.responseType = "json";
+      }
     };
 
-    xhr.send();
+    let formData: FormData | undefined = undefined;
+    if (body) {
+      formData = new FormData();
+      for (var key in body) {
+        formData.append(key, body[key] as string);
+      }
+    }
+
+    xhr.send(formData);
   });
 
+  const status = xhr.status;
+  const ok = status === 200;
+
+  let data: any = null;
+  if (!ok) {
+    data = xhr.response;
+  }
+
   updateAuthTokenFromXMLHttpRequest(xhr);
+
+  return {
+    status,
+    ok: status === 200,
+    data,
+    headers: {} as any,
+  };
 };
 
 export const apiGetFilePreview = async (item: FilesystemItem) => {
@@ -164,7 +194,7 @@ export const apiGetFilePreview = async (item: FilesystemItem) => {
 
   let accessToken = getAccessToken();
 
-  const response = await fetch(item.uploaded_file!, {
+  const response = await fetch(item.download_url!, {
     credentials: "include",
     headers: {
       "x-access-token": accessToken,

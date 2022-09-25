@@ -11,6 +11,7 @@ import { NotFoundErrorPage } from "./common/errors/not-found";
 import { useAuth } from "./auth-context";
 // Other
 import { AboutPage } from "./common/about";
+import { SharedItemDownloadPage } from "./common/shared-item-download";
 
 export const MyRoutes: React.FC = () => {
   const auth = useAuth();
@@ -30,6 +31,10 @@ export const MyRoutes: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
         </>
       )}
+      <Route
+        path="/share/:shareId/download"
+        element={<SharedItemDownloadPage />}
+      />
       <Route path="/about" element={<AboutPage />} />
       <Route path="*" element={<NotFoundErrorPage />} />
     </Routes>

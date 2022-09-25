@@ -25,11 +25,13 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 - password (a password to protect the file or null)
 - expiry (a date beyond which the file won't be downloadable anymore or null)
 
-[-] Create api views to create, retrieve and delete shares.
+[-] Create api views to create, retrieve and **delete** shares.
 
 [x] Replace the middleware we currently have to download files with a new api endpoint.
 
-[ ] Implement functionality on frontend.
+[x] Implement functionality on frontend.
+
+[ ] When trying to share a file that's already shared fail and alert user.
 
 ### Zipping directories for download
 

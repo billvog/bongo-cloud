@@ -95,7 +95,7 @@ export const RenameItemModal: React.FC<RenameItemModalProps> = ({
           );
         })}
       >
-        <div className="relative">
+        <div>
           <TextInput
             placeholder="ex. my-image.jpeg"
             label="New name"

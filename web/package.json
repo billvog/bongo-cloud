@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.10.4",
     "@mantine/core": "^5.3.0",
+    "@mantine/dates": "^5.4.1",
     "@mantine/dropzone": "^5.3.0",
     "@mantine/form": "^5.3.0",
     "@mantine/hooks": "^5.3.0",
@@ -17,6 +18,7 @@
     "@types/node": "^16.11.58",
     "@types/react": "^18.0.18",
     "@types/react-dom": "^18.0.6",
+    "dayjs": "^1.11.5",
     "jwt-decode": "^3.1.2",
     "mrmime": "^1.0.1",
     "pretty-bytes": "^6.0.0",
