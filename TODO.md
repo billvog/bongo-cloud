@@ -33,6 +33,8 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 
 [ ] When trying to share a file that's already shared fail and alert user.
 
+[ ] Limit the things the api returns (for example, don't return the allowed_users, is_expired or parent and download_url for item) and add the user that shares.
+
 ### Zipping directories for download
 
 [ ] Use python's [zipfile](https://docs.python.org/3/library/zipfile.html) module to let users download folders.
