@@ -30,7 +30,7 @@ export const SharedItemDownloadPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (sharedItemQuery.isSuccess && sharedItemQuery.data.data) {
+    if (sharedItemQuery.data?.ok && sharedItemQuery.data.data) {
       setSharedItem(sharedItemQuery.data.data);
     }
   }, [sharedItemQuery]);
