@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export const AboutPage: React.FC = () => {
   return (
@@ -10,6 +11,7 @@ export const AboutPage: React.FC = () => {
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
+        <Link to="/">Return</Link>
         <h1>About us.</h1>
         <p>
           Behind <b>Bongo Cloud</b>, <b>Bongoose</b> and <b>Bongo-Vault</b>{" "}
@@ -28,7 +30,7 @@ export const AboutPage: React.FC = () => {
         <h2>How does it work?</h2>
         <p>
           Essentially, Bongo lets its users share a 250 GB drive with each other
-          without letting anyone paying a <b>single dollar</b>. That's it.
+          without letting anyone pay a <b>single dollar</b>. That's it.
         </p>
         <h2>What about security?</h2>
         <p>Yeah, what about it?</p>
