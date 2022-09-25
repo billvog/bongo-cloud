@@ -138,6 +138,17 @@ class RetrieveFilesystemSharedItemAPIVIew(
 	queryset = FilesystemSharedItem.objects.all()
 	serializer_class = FilesystemSharedItemSerializer
 
+	def get(self, request, *args, **kwargs):
+		item_id = kwargs['pk']
+		item = get_object_or_404(FilesystemSharedItem, pk=item_id)
+
+		if item.is_expired():
+			item.delete()
+			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
+
+		serializer = self.get_serializer(item)
+		return Response(serializer.data)
+
 class DownloadFilesystemSharedItemAPIVIew(
 	FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin,
 	APIView
