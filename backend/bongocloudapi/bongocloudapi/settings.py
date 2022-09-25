@@ -51,10 +51,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'authentication',
     'filesystem'
 ]
+
+if not IS_PROD:
+    INSTALLED_APPS += ['rest_framework']
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -148,7 +150,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 STATIC_URL = 'static/'
 
 # Media files (uploaded by user)
-MEDIA_URL = 'bongoose/'
 MEDIA_ROOT = BASE_DIR.parent / 'bongo-storage'
 
 # Default primary key field type
