@@ -25,13 +25,19 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 - password (a password to protect the file or null)
 - expiry (a date beyond which the file won't be downloadable anymore or null)
 
-[-] Create api views to create, retrieve and **delete** shares.
+[x] Create api views to create, retrieve and **delete** shares.
 
 [x] Replace the middleware we currently have to download files with a new api endpoint.
 
 [x] Implement functionality on frontend.
 
 [x] Limit the things the api returns (for example, don't return the allowed_users, is_expired or parent and download_url for item) and add the user that shares.
+
+### Edit user
+
+[ ] Write views for updating user with password protection.
+
+[ ] Implement edit on frontend.
 
 ### Zipping directories for download
 
