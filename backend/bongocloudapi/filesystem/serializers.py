@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from authentication.serializers import PublicUserSerializer
+from authentication.serializers import PublicUserSerializer, UserSerializer
 from .models import (
 	FilesystemItem,
 	FilesystemSharedItem,
@@ -134,7 +134,7 @@ class MoveFilesystemItemSerializer(serializers.ModelSerializer):
 
 class FilesystemSharedItemSerializer(serializers.ModelSerializer):
 	item = FilesystemItemSerializer()
-	allowed_users = PublicUserSerializer(many=True)
+	allowed_users = serializers.SerializerMethodField()
 	download_url = serializers.HyperlinkedIdentityField(view_name='filesystem_shared_item-download', lookup_field='pk')
 
 	class Meta:
@@ -149,6 +149,13 @@ class FilesystemSharedItemSerializer(serializers.ModelSerializer):
 			'is_expired',
 			'download_url'
 		]
+
+	def get_allowed_users(self, obj):
+		allowed_user_codes = []
+		allowed_users = obj.allowed_users.all()
+		for allowed_user in allowed_users:
+			allowed_user_codes.append(allowed_user.short_code)
+		return allowed_user_codes
 
 class PublicFilesystemSharedItemSerializer(serializers.ModelSerializer):
 	item = PublicFilesystemItemSerializer()
@@ -177,6 +184,26 @@ class CreateFilesystemSharedItemSerializer(serializers.ModelSerializer):
 		fields = [
 			'id',
 			'item',
+			'allowed_users',
+			'has_password',
+			'password',
+			'does_expire',
+			'expiry'
+		]
+
+	def validate_password(self, value):
+		if value is not None and len(value) <= 0:
+			raise serializers.ValidationError('Please provide a password.')
+		return value
+
+class UpdateFilesystemSharedItemSerializer(serializers.ModelSerializer):
+	has_password = serializers.BooleanField(default=False, read_only=True)
+	does_expire = serializers.BooleanField(default=False, read_only=True)
+
+	class Meta:
+		model = FilesystemSharedItem
+		fields = [
+			'id',
 			'allowed_users',
 			'has_password',
 			'password',

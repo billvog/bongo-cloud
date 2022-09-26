@@ -11,6 +11,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 
+from authentication.serializers import UserSerializer
+
 from .models import FilesystemItem, FilesystemSharedItem
 from .serializers import (
 	CreateFilesystemItemSerializer,
@@ -19,11 +21,13 @@ from .serializers import (
 	FilesystemItemSerializer,
 	FilesystemSharedItemSerializer,
 	MoveFilesystemItemSerializer,
-	PublicFilesystemSharedItemSerializer
+	PublicFilesystemSharedItemSerializer,
+	UpdateFilesystemSharedItemSerializer
 )
 from .permissions import (
 	FilesystemItemOwnerPermissionsMixin,
-	FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin
+	FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin,
+	FilesystemSharedItemOwnerPermissionsMixin
 )
 
 User = get_user_model()
@@ -226,3 +230,70 @@ class CreateFilesystemSharedItemAPIView(FilesystemItemOwnerPermissionsMixin, Cre
 
 		headers = self.get_success_headers(serialized_fileshare)
 		return Response(serialized_fileshare, status=status.HTTP_201_CREATED, headers=headers)
+
+class RetrieveFilesystemSharedItemFromItemIdAPIView(
+	FilesystemItemOwnerPermissionsMixin, RetrieveAPIView
+):
+	queryset = FilesystemSharedItem.objects.all()
+	serializer_class = FilesystemSharedItemSerializer
+	
+	def retrieve(self, request, *args, **kwargs):
+		item_id = kwargs['pk']
+		item = get_object_or_404(FilesystemSharedItem, item__id=item_id)
+
+		serializer = self.get_serializer(item)
+		return Response(serializer.data)
+
+class UpdateFilesystemSharedItemAPIView(
+	FilesystemSharedItemOwnerPermissionsMixin,
+	UpdateAPIView
+):
+	queryset = FilesystemSharedItem.objects.all()
+	serializer_class = UpdateFilesystemSharedItemSerializer
+
+	def put(self, request, *args, **kwargs):
+		return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+	def patch(self, request, *args, **kwargs):
+		# fetch shared item
+		shared_item = self.get_object()
+
+		# init serializer
+		serializer = self.get_serializer(shared_item, data=request.data, partial=True)
+		data = serializer.initial_data
+
+		# find users from their short codes
+		allowed_users = []
+		if 'allowed_users' in data and len(data['allowed_users']) > 0:
+			for allowed_user in data['allowed_users']:
+				try:
+					u = get_object_or_404(User, short_code=allowed_user)
+					allowed_users.append(u.id)
+				except:
+					return Response({ 'detail': f'User with code "{allowed_user}" was not found.' }, status=status.HTTP_400_BAD_REQUEST)
+		
+		data['allowed_users'] = allowed_users
+
+		# check if data is valid
+		serializer.is_valid(raise_exception=True)
+		data = serializer.validated_data
+
+		# check password
+		if 'password' in data and data['password'] is not None:
+			data['has_password'] = True
+			
+			if len(data['password']) <= 0:
+				password_hash = shared_item.password
+			else:
+				password_hash = make_password(data['password'])
+		else:
+			data['has_password'] = False
+			password_hash = None
+
+		# check expiry datetime
+		data['does_expire'] = 'expiry' in data and data['expiry'] is not None
+
+		# save and return ok
+		updated_fileshare = serializer.save(password=password_hash)
+		serialized_fileshare = FilesystemSharedItemSerializer(updated_fileshare, context=self.get_serializer_context()).data
+		return Response(serialized_fileshare)

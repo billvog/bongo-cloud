@@ -21,6 +21,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
 		model = User
 		fields = [
 			'id',
+			'short_code',
 			'first_name',
 			'last_name',
 			'username',
