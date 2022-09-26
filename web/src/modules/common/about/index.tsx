@@ -1,4 +1,5 @@
 import React from "react";
+import { MdKeyboardBackspace } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 export const AboutPage: React.FC = () => {
@@ -11,7 +12,10 @@ export const AboutPage: React.FC = () => {
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
-        <Link to="/">Return</Link>
+        <Link to="/" className="flex flex-row items-center w-fit">
+          <MdKeyboardBackspace />
+          <span className="ml-2 font-bold">Return</span>
+        </Link>
         <h1>About us.</h1>
         <p>
           Behind <b>Bongo Cloud</b>, <b>Bongoose</b> and <b>Bongo-Vault</b>{" "}

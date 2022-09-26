@@ -55,8 +55,8 @@ export const Layout: React.FC<LayoutProps> = (props) => {
                 </div>
               </div>
               <div className="border-0 border-solid border-t-2 border-gray-100 py-3 flex flex-row space-x-4 justify-center items-center text-xs">
-                <Link to="#">About us.</Link>
-                <Link to="#">Bongo's Model.</Link>
+                <Link to="/about">About us.</Link>
+                <Link to="/about">Bongo's Model.</Link>
               </div>
             </div>
           </Navbar.Section>
