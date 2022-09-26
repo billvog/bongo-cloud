@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from authentication.serializers import MinimalUserSerializer
+from authentication.serializers import PublicUserSerializer
 from .models import (
 	FilesystemItem,
 	FilesystemSharedItem,
@@ -21,6 +21,16 @@ class FilesystemItemSerializer(serializers.ModelSerializer):
 			'size',
 			'path',
 			'download_url',
+		]
+
+class PublicFilesystemItemSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = FilesystemItem
+		fields = [
+			'id',
+			'name',
+			'is_file',
+			'size',
 		]
 
 class CreateFilesystemItemSerializer(serializers.ModelSerializer):
@@ -123,7 +133,7 @@ class MoveFilesystemItemSerializer(serializers.ModelSerializer):
 
 class FilesystemSharedItemSerializer(serializers.ModelSerializer):
 	item = FilesystemItemSerializer()
-	allowed_users = MinimalUserSerializer(many=True)
+	allowed_users = PublicUserSerializer(many=True)
 	download_url = serializers.HyperlinkedIdentityField(view_name='filesystem_shared_item-download', lookup_field='pk')
 
 	class Meta:
@@ -136,6 +146,23 @@ class FilesystemSharedItemSerializer(serializers.ModelSerializer):
 			'does_expire',
 			'expiry',
 			'is_expired',
+			'download_url'
+		]
+
+class PublicFilesystemSharedItemSerializer(serializers.ModelSerializer):
+	item = PublicFilesystemItemSerializer()
+	sharer = PublicUserSerializer(source='item.owner')
+	download_url = serializers.HyperlinkedIdentityField(view_name='filesystem_shared_item-download', lookup_field='pk')
+
+	class Meta:
+		model = FilesystemSharedItem
+		fields = [
+			'id',
+			'sharer',
+			'item',
+			'has_password',
+			'does_expire',
+			'expiry',
 			'download_url'
 		]
 

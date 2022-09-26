@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 			'date_joined'
 		]
 
-class MinimalUserSerializer(serializers.ModelSerializer):
+class PublicUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = [
@@ -24,7 +24,6 @@ class MinimalUserSerializer(serializers.ModelSerializer):
 			'first_name',
 			'last_name',
 			'username',
-			'email',
 			'gravatar_hash'
 		]
 

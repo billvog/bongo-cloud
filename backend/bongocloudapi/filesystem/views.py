@@ -18,9 +18,13 @@ from .serializers import (
 	DownloadFilesystemSharedItemSerializer,
 	FilesystemItemSerializer,
 	FilesystemSharedItemSerializer,
-	MoveFilesystemItemSerializer
+	MoveFilesystemItemSerializer,
+	PublicFilesystemSharedItemSerializer
 )
-from .permissions import FilesystemItemOwnerPermissionsMixin, FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin
+from .permissions import (
+	FilesystemItemOwnerPermissionsMixin,
+	FilesystemSharedItemOwnerOrInAllowedUsersPermissionsMixin
+)
 
 User = get_user_model()
 
@@ -136,7 +140,7 @@ class RetrieveFilesystemSharedItemAPIVIew(
 	RetrieveAPIView
 ):
 	queryset = FilesystemSharedItem.objects.all()
-	serializer_class = FilesystemSharedItemSerializer
+	serializer_class = PublicFilesystemSharedItemSerializer
 
 	def get(self, request, *args, **kwargs):
 		item_id = kwargs['pk']
