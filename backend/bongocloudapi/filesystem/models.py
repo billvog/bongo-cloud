@@ -60,6 +60,8 @@ class FilesystemSharedItem(models.Model):
 	password = models.CharField(max_length=100, null=True, blank=True)
 	does_expire = models.BooleanField(default=False)
 	expiry = models.DateTimeField(null=True, blank=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateTimeField(auto_now_add=True)
 
 	def is_expired(self) -> bool:
 		if not self.does_expire or self.expiry is None:
