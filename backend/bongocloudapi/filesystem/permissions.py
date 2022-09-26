@@ -15,13 +15,13 @@ class IsOwnerOfItem(permissions.BasePermission):
 			if 'pk' in view.kwargs:
 				filesystem_item = get_object_or_404(FilesystemItem, pk=view.kwargs['pk'])
 				return self.does_user_has_permission(request, filesystem_item)
+			else:
+				return True
 		except Http404:
-			pass # in this case, the view is responsible for returning a 404
+			return True # in this case, the view is responsible for returning a 404
 		except Exception as error:
 			print(error)
 			return False
-
-		return True
 
 	def has_object_permission(self, request, view, obj):
 		return self.does_user_has_permission(request, obj)
@@ -46,6 +46,17 @@ class FilesystemItemOwnerPermissionsMixin():
 Only allow user who is the owner of the item (to perform Update or Delete ops.)
 """
 class IsOwnerOfSharedItem(permissions.BasePermission):
+	def has_permission(self, request, view):
+		try:
+			if 'pk' in view.kwargs:
+				filesystem_shared_item = get_object_or_404(FilesystemSharedItem, pk=view.kwargs['pk'])
+				return self.does_user_has_permission(request, filesystem_shared_item)
+		except Http404:
+			return True
+		except Exception as error:
+			print(error)
+			return False
+
 	def has_object_permission(self, request, view, obj):
 		return self.does_user_has_permission(request, obj)
 
@@ -71,6 +82,17 @@ Only allow user who either is the owner of the item, or
 is in the allowed_users list of the FilesystemSharedItem (to perform only Read ops.)
 """
 class IsOwnerOrInAllowedUsersOfSharedItem(permissions.BasePermission):
+	def has_permission(self, request, view):
+		try:
+			if 'pk' in view.kwargs:
+				filesystem_shared_item = get_object_or_404(FilesystemSharedItem, pk=view.kwargs['pk'])
+				return self.does_user_has_permission(request, filesystem_shared_item)
+		except Http404:
+			return True
+		except Exception as error:
+			print(error)
+			return False
+
 	def has_object_permission(self, request, view, obj):
 		return self.does_user_has_permission(request, obj)
 
@@ -80,6 +102,8 @@ class IsOwnerOrInAllowedUsersOfSharedItem(permissions.BasePermission):
 			(user, _) = JWTAuthentication().authenticate(request)
 		except Exception as error:
 			print(error)
+
+		print(user)
 
 		if user is None:
 			return False

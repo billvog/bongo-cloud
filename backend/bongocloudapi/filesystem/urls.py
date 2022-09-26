@@ -13,9 +13,10 @@ urlpatterns = [
 
   path('<uuid:pk>/share/', views.CreateFilesystemSharedItemAPIView.as_view()),
 
-  path('share/<uuid:pk>/update/', views.UpdateFilesystemSharedItemAPIView.as_view()),
   path('share/item/<uuid:pk>/', views.RetrieveFilesystemSharedItemFromItemIdAPIView.as_view()),
   path('share/<uuid:pk>/', views.RetrieveFilesystemSharedItemAPIVIew.as_view()),
+  path('share/<uuid:pk>/update/', views.UpdateFilesystemSharedItemAPIView.as_view()),
+  path('share/<uuid:pk>/delete/', views.DestroyFilesystemSharedItemAPIView.as_view()),
   path(
     'share/<uuid:pk>/download/',
     views.DownloadFilesystemSharedItemAPIVIew.as_view(),

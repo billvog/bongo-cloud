@@ -146,7 +146,7 @@ class RetrieveFilesystemSharedItemAPIVIew(
 	queryset = FilesystemSharedItem.objects.all()
 	serializer_class = PublicFilesystemSharedItemSerializer
 
-	def get(self, request, *args, **kwargs):
+	def retrieve(self, request, *args, **kwargs):
 		item_id = kwargs['pk']
 		item = get_object_or_404(FilesystemSharedItem, pk=item_id)
 
@@ -241,6 +241,10 @@ class RetrieveFilesystemSharedItemFromItemIdAPIView(
 		item_id = kwargs['pk']
 		item = get_object_or_404(FilesystemSharedItem, item__id=item_id)
 
+		if item.is_expired():
+			item.delete()
+			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
+
 		serializer = self.get_serializer(item)
 		return Response(serializer.data)
 
@@ -257,6 +261,11 @@ class UpdateFilesystemSharedItemAPIView(
 	def patch(self, request, *args, **kwargs):
 		# fetch shared item
 		shared_item = self.get_object()
+
+		# check if is expired
+		if shared_item.is_expired():
+			shared_item.delete()
+			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
 
 		# init serializer
 		serializer = self.get_serializer(shared_item, data=request.data, partial=True)
@@ -297,3 +306,9 @@ class UpdateFilesystemSharedItemAPIView(
 		updated_fileshare = serializer.save(password=password_hash)
 		serialized_fileshare = FilesystemSharedItemSerializer(updated_fileshare, context=self.get_serializer_context()).data
 		return Response(serialized_fileshare)
+
+class DestroyFilesystemSharedItemAPIView(
+	FilesystemSharedItemOwnerPermissionsMixin,
+	DestroyAPIView
+):
+	queryset = FilesystemSharedItem.objects.all()
