@@ -13,7 +13,11 @@ export const SidebarItem: React.FC<SidebarItemProps> = (props) => {
   const location = useLocation();
 
   useEffect(() => {
-    setIsActive(location.pathname === props.path);
+    if (props.path === "/-/") {
+      setIsActive(location.pathname.startsWith(props.path));
+    } else {
+      setIsActive(location.pathname === props.path);
+    }
   }, [location.pathname, props.path]);
 
   const onClick = () => {

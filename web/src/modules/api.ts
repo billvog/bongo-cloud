@@ -152,10 +152,6 @@ export const apiDownloadFile = async (
         a.click();
         a.remove();
       }
-
-      if (xhr.status !== 200) {
-        xhr.responseType = "json";
-      }
     };
 
     let formData: FormData | undefined = undefined;
@@ -174,7 +170,7 @@ export const apiDownloadFile = async (
 
   let data: any = null;
   if (!ok) {
-    data = xhr.response;
+    data = JSON.parse(await (xhr.response as Blob).text());
   }
 
   updateAuthTokenFromXMLHttpRequest(xhr);

@@ -20,6 +20,10 @@ import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
 import { MyLegend } from "../my-legend";
 
+const generateShareLink = (shareId: string) => {
+  return `${process.env.REACT_APP_URL}/share/${shareId}/download`;
+};
+
 interface ShareItemModalProps {
   item: FilesystemItem;
   isOpen: boolean;
@@ -112,6 +116,46 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
     }
   });
 
+  const deleteItemMutation = useMutation<APIResponse>(() =>
+    api(`/filesystem/share/${sharedItem!.id}/delete/`, "DELETE")
+  );
+
+  const onDeleteClicked = () => {
+    if (sharedItem) {
+      deleteItemMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          if (!data.ok) {
+            apiErrorNotification();
+            return;
+          }
+
+          onClose();
+          showNotification({
+            title: "Share deleted!",
+            message: `"${item.name}" is not shared anymore.`,
+          });
+        },
+        onError: () => {
+          apiErrorNotification();
+        },
+      });
+    }
+  };
+
+  const onCopyLinkClicked = () => {
+    if (!sharedItem) {
+      return;
+    }
+
+    const shareLink = generateShareLink(sharedItem.id);
+    clipboard.copy(shareLink);
+
+    showNotification({
+      message: `The share link is copied to your clipboard.`,
+      color: "blue",
+    });
+  };
+
   const validateUserShortCode = (short_code: string) => {
     return short_code.length === 6 && short_code.match(/^[a-zA-Z0-9]+$/);
   };
@@ -179,7 +223,7 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
                   return;
                 }
 
-                const sharedLink = `${process.env.REACT_APP_URL}/share/${data.data.id}/download`;
+                const sharedLink = generateShareLink(data.data.id);
                 clipboard.copy(sharedLink);
 
                 onClose();
@@ -313,18 +357,44 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
             }
           />
         </div>
-        <div className="flex flex-row items-center justify-end space-x-3">
-          <Button
-            compact
-            color="dark"
-            type="submit"
-            loading={shareItemMutation.isLoading}
-          >
-            {isUpdating ? "Update" : "Share"}
-          </Button>
-          <Button compact variant="default" type="button" onClick={onClose}>
-            Cancel
-          </Button>
+        <div className="flex flex-row items-center justify-between">
+          <div className="space-x-3">
+            {isUpdating && (
+              <>
+                <Button
+                  compact
+                  variant="filled"
+                  color="red"
+                  type="button"
+                  onClick={onDeleteClicked}
+                  loading={deleteItemMutation.isLoading}
+                >
+                  Delete
+                </Button>
+                <Button
+                  compact
+                  variant="light"
+                  type="button"
+                  onClick={onCopyLinkClicked}
+                >
+                  Copy link
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="space-x-3">
+            <Button
+              compact
+              color="dark"
+              type="submit"
+              loading={shareItemMutation.isLoading}
+            >
+              {isUpdating ? "Update" : "Share"}
+            </Button>
+            <Button compact variant="default" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
         </div>
       </form>
     </Modal>

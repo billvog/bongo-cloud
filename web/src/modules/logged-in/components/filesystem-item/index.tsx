@@ -179,11 +179,13 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
           </div>
         </div>
       </div>
-      <PreviewModal
-        item={item}
-        isOpen={previewModalOpen}
-        onClose={() => setPreviewModelOpen(false)}
-      />
+      {previewModalOpen && (
+        <PreviewModal
+          item={item}
+          isOpen={previewModalOpen}
+          onClose={() => setPreviewModelOpen(false)}
+        />
+      )}
       {shareModalOpen && (
         <ShareItemModal
           item={item}
@@ -191,11 +193,13 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
           onClose={() => setShareModelOpen(false)}
         />
       )}
-      <RenameItemModal
-        item={item}
-        isOpen={renameModalOpen}
-        onClose={() => setRenameModelOpen(false)}
-      />
+      {renameModalOpen && (
+        <RenameItemModal
+          item={item}
+          isOpen={renameModalOpen}
+          onClose={() => setRenameModelOpen(false)}
+        />
+      )}
     </>
   );
 };

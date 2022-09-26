@@ -12,6 +12,7 @@ import { useAuth } from "./auth-context";
 // Other
 import { AboutPage } from "./common/about";
 import { SharedItemDownloadPage } from "./common/shared-item-download";
+import { AccountPage } from "./logged-in/account";
 
 export const MyRoutes: React.FC = () => {
   const auth = useAuth();
@@ -22,6 +23,7 @@ export const MyRoutes: React.FC = () => {
         <>
           <Route path="/" element={<Navigate to="/-/" />} />
           <Route path="/-/*" element={<MyFilesPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </>
       ) : (
         // Not logged in

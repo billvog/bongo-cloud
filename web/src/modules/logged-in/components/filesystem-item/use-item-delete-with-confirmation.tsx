@@ -9,7 +9,7 @@ import { useAPICache } from "../../../shared-hooks/use-api-cache";
 export const useItemDeleteWithConfirmation = (item: FilesystemItem) => {
   const apiCache = useAPICache();
   const deleteItemMutation = useMutation<APIResponse>(() =>
-    api(`/filesystem/${item.id}/delete`, "DELETE")
+    api(`/filesystem/${item.id}/delete/`, "DELETE")
   );
 
   const deleteFile = () => {
