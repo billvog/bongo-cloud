@@ -2,6 +2,7 @@ import { AppShell, Burger, Header, MediaQuery, Navbar } from "@mantine/core";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth-context";
+import { UserAvatar } from "../components/user-avatar";
 import { SidebarItem } from "./sidebar-item";
 
 interface LayoutProps {
@@ -33,19 +34,15 @@ export const Layout: React.FC<LayoutProps> = (props) => {
           <Navbar.Section>
             <div>
               <div className="border-0 border-solid border-t-2 border-gray-200 p-4">
-                <div className="p-2 rounded-xl flex flex-row space-x-4 items-center cursor-pointer hover:bg-slate-100">
+                <div className="p-2 rounded-xl flex flex-row space-x-4 items-center cursor-pointer hover:bg-gray-100">
                   <div>
-                    <img
-                      alt="user avatar"
-                      src="/images/user-placeholder.png"
-                      className="w-14 h-14 object-cover rounded-full"
-                    />
+                    <UserAvatar user={user} />
                   </div>
                   <div className="flex flex-col leading-tight">
                     <div className="font-bold">
                       {user.first_name + " " + user.last_name}
                     </div>
-                    <div className="font-bold text-gray-400 text-sm">
+                    <div className="font-bold text-gray-500 text-sm">
                       @{user.username}
                     </div>
                   </div>

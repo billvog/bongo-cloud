@@ -27,6 +27,7 @@ export type FilesystemItemEditable = {
 
 export type FilesystemSharedItem = {
   id: string;
+  sharer: User;
   item: FilesystemItem;
   has_password: boolean;
   does_expire: true;

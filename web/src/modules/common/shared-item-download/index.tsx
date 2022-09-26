@@ -10,14 +10,18 @@ import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { AiFillCheckCircle, AiOutlineDownload } from "react-icons/ai";
 import { IoMdLock } from "react-icons/io";
+import { MdKeyboardBackspace } from "react-icons/md";
 import { useQuery } from "react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FilesystemSharedItem } from "../../../types";
 import { apiErrorNotification } from "../../../utils/api-error-update-notification";
 import { api, apiDownloadFile } from "../../api";
+import { useAuth } from "../../auth-context";
+import { UserAvatar } from "../../logged-in/components/user-avatar";
 
 export const SharedItemDownloadPage: React.FC = () => {
   const { shareId } = useParams();
+  const { user } = useAuth();
 
   const [password, setPassword] = useState<string>("");
 
@@ -136,7 +140,30 @@ export const SharedItemDownloadPage: React.FC = () => {
             WebkitBackdropFilter: "blur(12px)",
           }}
         >
+          {user && (
+            <Link to="/-/" className="flex flex-row items-center w-fit">
+              <MdKeyboardBackspace />
+              <span className="ml-2 font-bold">Return to your files.</span>
+            </Link>
+          )}
           <h2>Download "{sharedItem.item.name}"</h2>
+          <div>
+            <div className="mb-1 font-semibold">Shared from:</div>
+            <div className="flex flex-row items-center p-4 space-x-4 border-solid border-2 border-orange-200 bg-orange-50 rounded-lg">
+              <UserAvatar user={sharedItem.sharer} />
+              <div className="flex flex-col">
+                <div className="text-md leading-tight">
+                  {sharedItem.sharer.first_name} {sharedItem.sharer.last_name}
+                </div>
+                <div className="leading-tight text-sm">
+                  @
+                  <span className="font-bold">
+                    {sharedItem.sharer.username}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
           {sharedItem.does_expire && sharedItem.expiry && (
             <div className="space-y-1.5">
               <p>
@@ -153,13 +180,16 @@ export const SharedItemDownloadPage: React.FC = () => {
             <div>
               <div className="font-bold flex items-center space-x-2 mb-2">
                 <IoMdLock size={18} />
-                <span>This file is protected with password.</span>
+                <span>This file is protected with a password.</span>
               </div>
               <PasswordInput
                 label="Password"
                 placeholder="Enter the password to download this file"
                 value={password}
                 onChange={(e) => setPassword(e.currentTarget.value)}
+                onKeyPress={(event) => {
+                  if (event.key === "Enter") onDownloadClicked();
+                }}
               />
             </div>
           )}
