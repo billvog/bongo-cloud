@@ -2,8 +2,8 @@
 
 ### Change /files route to /-/:path
 
-[x] Make a route on backend to retrieve filesystem item by path.
-[x] Implement the logic on the frontend and change the route whenever the user changes path.
+- [x] Make a route on backend to retrieve filesystem item by path.
+- [x] Implement the logic on the frontend and change the route whenever the user changes path.
 
 Everything after `/-/` will be the path that will be requested from the api.
 
@@ -13,35 +13,35 @@ When the user visits the site with a url the has a path (ex. bongo-cloud.ga/-/**
 
 ### Letting the user cancel upload or download operations.
 
-[x] Abort XMLHttpRequest when the up/download notification gets closed from the user.
+- [x] Abort XMLHttpRequest when the up/download notification gets closed from the user.
 
 ### Implement file-sharing.
 
-[x] Create a new model with the following columns:
+- [x] Create a new model with the following columns:
 
-- id (with this the users will be able to download the file)
-- filesystem_item (the item being shared)
-- allowed_users (a list of the users that are able to access the shared file)
-- password (a password to protect the file or null)
-- expiry (a date beyond which the file won't be downloadable anymore or null)
+  - id (with this the users will be able to download the file)
+  - filesystem_item (the item being shared)
+  - allowed_users (a list of the users that are able to access the shared file)
+  - password (a password to protect the file or null)
+  - expiry (a date beyond which the file won't be downloadable anymore or null)
 
-[x] Create api views to create, retrieve and **delete** shares.
+- [x] Create api views to create, retrieve and **delete** shares.
 
-[x] Replace the middleware we currently have to download files with a new api endpoint.
+- [x] Replace the middleware we currently have to download files with a new api endpoint.
 
-[x] Implement functionality on frontend.
+- [x] Implement functionality on frontend.
 
-[x] Limit the things the api returns (for example, don't return the allowed_users, is_expired or parent and download_url for item) and add the user that shares.
+- [x] Limit the things the api returns (for example, don't return the allowed_users, is_expired or parent and download_url for item) and add the user that shares.
 
 ### Edit user
 
-[ ] Write views for updating user with password protection.
+- [ ] Write views for updating user with password protection.
 
-[ ] Implement edit on frontend.
+- [ ] Implement edit on frontend.
 
 ### Zipping directories for download
 
-[ ] Use python's [zipfile](https://docs.python.org/3/library/zipfile.html) module to let users download folders.
+- [ ] Use python's [zipfile](https://docs.python.org/3/library/zipfile.html) module to let users download folders.
 
 #### Thoughts on the implementation:
 
