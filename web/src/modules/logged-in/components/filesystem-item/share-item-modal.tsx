@@ -9,12 +9,12 @@ import { DatePicker, TimeInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useClipboard } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BiTime } from "react-icons/bi";
 import { BsCalendarDate } from "react-icons/bs";
 import { IoMdLock } from "react-icons/io";
-import { useMutation } from "react-query";
-import { FilesystemItem } from "../../../../types";
+import { useMutation, useQuery } from "react-query";
+import { FilesystemItem, FilesystemSharedItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
@@ -33,26 +33,68 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
 }) => {
   const clipboard = useClipboard({ timeout: 500 });
 
+  const [isUpdating] = useState(item.is_shared);
+  const [sharedItem, setSharedItem] = useState<FilesystemSharedItem | null>(
+    null
+  );
+
   const [allowedUsersData, setAllowedUsersData] = useState<string[]>([]);
   const [hasPassword, setHasPassword] = useState(false);
   const [expires, setExpires] = useState(false);
 
   const form = useForm({
     initialValues: {
-      allowed_users: [],
+      allowed_users: [] as string[],
       password: "",
       expiry_date: new Date(),
       expiry_time: new Date("0"),
     },
     validate: {
-      password: (password: string) =>
-        hasPassword
-          ? password.length <= 0
-            ? "Please enter a password."
-            : null
-          : null,
+      password: (password: string) => {
+        if (hasPassword) {
+          if (isUpdating && sharedItem && sharedItem.has_password) {
+            return null;
+          }
+
+          if (password.length <= 0) {
+            return "Please enter a password.";
+          }
+        }
+        return null;
+      },
     },
   });
+
+  const sharedItemQuery = useQuery(
+    ["share", "item", item.id],
+    () => {
+      return api(`/filesystem/share/item/${item.id}/`);
+    },
+    { enabled: isUpdating }
+  );
+
+  useEffect(
+    () => {
+      if (sharedItemQuery.data && sharedItemQuery.data.ok) {
+        const data = sharedItemQuery.data.data;
+        setSharedItem(data);
+
+        setAllowedUsersData(data.allowed_users);
+        form.setFieldValue("allowed_users", data.allowed_users);
+
+        setHasPassword(data.has_password);
+
+        setExpires(data.does_expire);
+        if (data.expiry) {
+          const expiry = new Date(data.expiry);
+          form.setFieldValue("expiry_date", expiry);
+          form.setFieldValue("expiry_time", expiry);
+        }
+      }
+    },
+    // eslint-disable-next-line
+    [sharedItemQuery.data]
+  );
 
   const shareItemMutation = useMutation<
     APIResponse,
@@ -63,7 +105,11 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
       expiry: Date | null;
     }
   >((values) => {
-    return api(`/filesystem/${item.id}/share/`, "POST", values);
+    if (isUpdating && sharedItem) {
+      return api(`/filesystem/share/${sharedItem.id}/update/`, "PATCH", values);
+    } else {
+      return api(`/filesystem/${item.id}/share/`, "POST", values);
+    }
   });
 
   const validateUserShortCode = (short_code: string) => {
@@ -137,8 +183,11 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
                 clipboard.copy(sharedLink);
 
                 onClose();
+
                 showNotification({
-                  title: `"${item.name}" is now shared!`,
+                  title: isUpdating
+                    ? `"${item.name}" share is updated!`
+                    : `"${item.name}" is now shared!`,
                   message: `The share link is copied to your clipboard.`,
                   color: "blue",
                 });
@@ -201,13 +250,21 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
             }
             content={
               hasPassword ? (
-                <PasswordInput
-                  {...form.getInputProps("password")}
-                  label="Password"
-                  placeholder="Password"
-                  description="The shared file will be downloadable only if the correct password is given."
-                  icon={<IoMdLock />}
-                />
+                <div>
+                  <PasswordInput
+                    {...form.getInputProps("password")}
+                    label="Password"
+                    placeholder="Password"
+                    description="The shared file will be downloadable only if the correct password is given."
+                    icon={<IoMdLock />}
+                  />
+                  {isUpdating && (
+                    <p className="mt-4 text-xs text-gray-500 font-medium">
+                      Enter a password if you want to update the current or
+                      leave empty to use the same.
+                    </p>
+                  )}
+                </div>
               ) : (
                 <div className="text-xs text-gray-600 font-medium">
                   Anyone with the link will be able to download this file.
@@ -263,7 +320,7 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
             type="submit"
             loading={shareItemMutation.isLoading}
           >
-            Share
+            {isUpdating ? "Update" : "Share"}
           </Button>
           <Button compact variant="default" type="button" onClick={onClose}>
             Cancel

@@ -184,11 +184,13 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
         isOpen={previewModalOpen}
         onClose={() => setPreviewModelOpen(false)}
       />
-      <ShareItemModal
-        item={item}
-        isOpen={shareModalOpen}
-        onClose={() => setShareModelOpen(false)}
-      />
+      {shareModalOpen && (
+        <ShareItemModal
+          item={item}
+          isOpen={shareModalOpen}
+          onClose={() => setShareModelOpen(false)}
+        />
+      )}
       <RenameItemModal
         item={item}
         isOpen={renameModalOpen}
