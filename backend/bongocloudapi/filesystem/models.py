@@ -48,6 +48,10 @@ class FilesystemItem(models.Model):
 		else:
 			return self.filesize
 
+	def is_shared(self):
+		shared = FilesystemSharedItem.objects.all().filter(item__id=self.id)
+		return shared.count() > 0
+
 class FilesystemSharedItem(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	item = models.ForeignKey('FilesystemItem', on_delete=models.CASCADE, null=False)

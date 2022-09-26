@@ -14,6 +14,7 @@ export type FilesystemItem = {
   is_file: boolean;
   size: number;
   path: string;
+  is_shared: boolean;
   download_url: string;
   created_at: Date;
   updated_at: Date;

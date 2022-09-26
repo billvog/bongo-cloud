@@ -20,6 +20,7 @@ class FilesystemItemSerializer(serializers.ModelSerializer):
 			'is_file',
 			'size',
 			'path',
+			'is_shared',
 			'download_url',
 		]
 
