@@ -18,7 +18,7 @@ import { FilesystemItem, FilesystemSharedItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
-import { MyLegend } from "../my-legend";
+import { MyFieldset } from "../my-fieldset";
 
 const generateShareLink = (shareId: string) => {
   return `${process.env.REACT_APP_URL}/share/${shareId}/download`;
@@ -282,7 +282,7 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
               return item;
             }}
           />
-          <MyLegend
+          <MyFieldset
             hero={
               <Checkbox
                 label="Secure with password"
@@ -316,7 +316,7 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
               )
             }
           />
-          <MyLegend
+          <MyFieldset
             hero={
               <Checkbox
                 label="Expire"

@@ -1,7 +1,7 @@
 import { Button, PasswordInput, TextInput } from "@mantine/core";
 import React from "react";
 import { useAuth } from "../../auth-context";
-import { MyLegend } from "../components/my-legend";
+import { MyFieldset } from "../components/my-fieldset";
 import { Layout } from "../layout";
 
 export const AccountPage: React.FC = () => {
@@ -22,7 +22,7 @@ export const AccountPage: React.FC = () => {
           </div>
         </div>
         <div className="w-full md:w-fit">
-          <MyLegend
+          <MyFieldset
             hero={<h3>Account Information</h3>}
             content={
               <div className="space-y-4">
@@ -60,7 +60,7 @@ export const AccountPage: React.FC = () => {
           />
         </div>
         <div className="w-full">
-          <MyLegend
+          <MyFieldset
             hero={<h3>Closing your account</h3>}
             content={
               <div className="space-y-4">
