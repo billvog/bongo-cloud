@@ -102,7 +102,7 @@ export const MyFilesPage: React.FC = () => {
   );
 
   useEffect(() => {
-    const itemId = location.state.currentItemId;
+    const itemId = location.state?.currentItemId;
     if (typeof itemId === "string" || itemId == null) {
       setCurrentItemId(itemId);
     }
