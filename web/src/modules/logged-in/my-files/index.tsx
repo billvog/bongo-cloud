@@ -91,11 +91,22 @@ export const MyFilesPage: React.FC = () => {
   useEffect(
     () => {
       filesystem.setCurrent(currentItem);
-      navigate(`/-${currentItem?.path || "/"}`);
+      navigate(`/-${currentItem ? currentItem.path : "/"}`, {
+        state: {
+          currentItemId: currentItem ? currentItem.id : null,
+        },
+      });
     },
     // eslint-disable-next-line
     [currentItem]
   );
+
+  useEffect(() => {
+    const itemId = location.state.currentItemId;
+    if (typeof itemId === "string" || itemId == null) {
+      setCurrentItemId(itemId);
+    }
+  }, [location.state]);
 
   const { user } = useAuth();
   if (!user) return null;
