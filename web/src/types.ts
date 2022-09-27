@@ -1,6 +1,5 @@
 export type User = {
   id: string;
-  short_code: string;
   first_name: string;
   last_name: string;
   username: string;

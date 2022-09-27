@@ -12,15 +12,6 @@ export const AccountPage: React.FC = () => {
     <Layout>
       <div className="p-8 space-y-8">
         <h1>Welcome back, {user.first_name}!</h1>
-        <div>
-          <div className="text-orange-600 text-md mb-1">
-            Your short code is:{" "}
-            <span className="font-bold underline">{user.short_code}</span>
-          </div>
-          <div className="text-sm text-orange-500 italic">
-            This code is used from other users to share files with you.
-          </div>
-        </div>
         <div className="w-full md:w-fit">
           <MyFieldset
             hero={<h3>Account Information</h3>}

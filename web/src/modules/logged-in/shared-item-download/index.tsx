@@ -1,27 +1,23 @@
-import {
-  Button,
-  Loader,
-  PasswordInput,
-  RingProgress,
-  ThemeIcon,
-} from "@mantine/core";
-import { showNotification, updateNotification } from "@mantine/notifications";
+import { Button, Loader, PasswordInput } from "@mantine/core";
+import { showNotification } from "@mantine/notifications";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
-import { AiFillCheckCircle, AiOutlineDownload } from "react-icons/ai";
+import { AiOutlineDownload } from "react-icons/ai";
 import { IoMdLock } from "react-icons/io";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useQuery } from "react-query";
 import { Link, useParams } from "react-router-dom";
 import { FilesystemSharedItem } from "../../../types";
-import { apiErrorNotification } from "../../../utils/api-error-update-notification";
-import { api, apiDownloadFile } from "../../api";
+import { api } from "../../api";
 import { useAuth } from "../../auth-context";
-import { UserAvatar } from "../../logged-in/components/user-avatar";
+import { useDownloadItem } from "../components/filesystem-item/use-download-item";
+import { UserAvatar } from "../components/user-avatar";
 
 export const SharedItemDownloadPage: React.FC = () => {
   const { shareId } = useParams();
   const { user } = useAuth();
+
+  const downloadItem = useDownloadItem();
 
   const [password, setPassword] = useState<string>("");
 
@@ -44,12 +40,8 @@ export const SharedItemDownloadPage: React.FC = () => {
       return;
     }
 
-    const download_loading_notif_id =
-      "download_loading_notif_id:" + sharedItem.item.id;
-
     if (sharedItem.has_password && password.length <= 0) {
       showNotification({
-        id: download_loading_notif_id,
         title: "Password is required.",
         message: "Please provide a valid password.",
         color: "red",
@@ -58,68 +50,14 @@ export const SharedItemDownloadPage: React.FC = () => {
       return;
     }
 
-    const RingProgressComponent = (progress: number) => {
-      return (
-        <RingProgress
-          sections={[{ value: progress, color: "blue" }]}
-          size={40}
-        />
-      );
-    };
-
-    showNotification({
-      id: download_loading_notif_id,
-      title: "Downloading...",
-      message: `Download is starting...`,
-      icon: RingProgressComponent(0),
-      disallowClose: true,
+    downloadItem(sharedItem.item, sharedItem.download_url, "POST", {
+      password,
     });
-
-    apiDownloadFile(
-      sharedItem.item,
-      (xhr, total, recieved) => {
-        updateNotification({
-          id: download_loading_notif_id,
-          title: "Downloading...",
-          message: `"${sharedItem.item.name}" is downloading...`,
-          icon: RingProgressComponent((recieved / total) * 100),
-          autoClose: false,
-          onClose: () => {
-            xhr.abort();
-          },
-        });
-      },
-      sharedItem.download_url,
-      "POST",
-      { password }
-    )
-      .then((data) => {
-        if (!data.ok) {
-          if (data.data?.detail) {
-            apiErrorNotification(download_loading_notif_id, data.data.detail);
-          } else {
-            apiErrorNotification(download_loading_notif_id);
-          }
-
-          return;
-        }
-
-        updateNotification({
-          id: download_loading_notif_id,
-          title: "Success",
-          message: `"${sharedItem.item.name}" is downloaded!`,
-          icon: (
-            <ThemeIcon color="teal" variant="light" radius="xl" size="md">
-              <AiFillCheckCircle size={22} />
-            </ThemeIcon>
-          ),
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        apiErrorNotification(download_loading_notif_id);
-      });
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="clouded-bg-container">
@@ -140,12 +78,10 @@ export const SharedItemDownloadPage: React.FC = () => {
             WebkitBackdropFilter: "blur(12px)",
           }}
         >
-          {user && (
-            <Link to="/-/" className="flex flex-row items-center w-fit">
-              <MdKeyboardBackspace />
-              <span className="ml-2 font-bold">Return to your files.</span>
-            </Link>
-          )}
+          <Link to="/-/" className="flex flex-row items-center w-fit">
+            <MdKeyboardBackspace />
+            <span className="ml-2 font-bold">Return to your files.</span>
+          </Link>
           <h2>Download "{sharedItem.item.name}"</h2>
           <div>
             <div className="mb-1 font-semibold">Shared from:</div>

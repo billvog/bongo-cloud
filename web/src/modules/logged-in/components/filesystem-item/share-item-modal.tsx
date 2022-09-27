@@ -1,15 +1,18 @@
 import {
   Button,
   Checkbox,
+  CloseButton,
   Modal,
   MultiSelect,
+  MultiSelectValueProps,
   PasswordInput,
+  SelectItemProps,
 } from "@mantine/core";
 import { DatePicker, TimeInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { useClipboard } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import { BiTime } from "react-icons/bi";
 import { BsCalendarDate } from "react-icons/bs";
 import { IoMdLock } from "react-icons/io";
@@ -23,6 +26,43 @@ import { MyFieldset } from "../my-fieldset";
 const generateShareLink = (shareId: string) => {
   return `${process.env.REACT_APP_URL}/share/${shareId}/download`;
 };
+
+function AllowedUserMultiselectValue({
+  value,
+  label,
+  onRemove,
+  classNames,
+  ...others
+}: MultiSelectValueProps & { value: string }) {
+  return (
+    <div {...others}>
+      <div className="flex flex-row items-center justify-between bg-gray-100 px-2 py-1 rounded-lg">
+        <div className="leading-tight mr-1 text-gray-800 text-sm">
+          @<span className="font-bold">{value}</span>
+        </div>
+        <CloseButton
+          onClick={onRemove}
+          variant="transparent"
+          size={20}
+          iconSize={14}
+          tabIndex={-1}
+        />
+      </div>
+    </div>
+  );
+}
+
+const AllowedUsersMultiselectItem = forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ value, ...others }, ref) => {
+    return (
+      <div ref={ref} {...others}>
+        <div className="flex items-center">
+          @<span className="font-bold">{value}</span>
+        </div>
+      </div>
+    );
+  }
+);
 
 interface ShareItemModalProps {
   item: FilesystemItem;
@@ -74,7 +114,7 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
     () => {
       return api(`/filesystem/share/item/${item.id}/`);
     },
-    { enabled: isUpdating }
+    { enabled: isUpdating, refetchOnMount: "always" }
   );
 
   useEffect(
@@ -154,10 +194,6 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
       message: `The share link is copied to your clipboard.`,
       color: "blue",
     });
-  };
-
-  const validateUserShortCode = (short_code: string) => {
-    return short_code.length === 6 && short_code.match(/^[a-zA-Z0-9]+$/);
   };
 
   return (
@@ -248,34 +284,28 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
             {...form.getInputProps("allowed_users")}
             label="Allowed users"
             placeholder="Leave empty to allow anyone."
-            description="Select the users you want to have access to this file providing their short codes."
+            description="Select the users you want to have access to this file providing their username."
             data={allowedUsersData}
             searchable
             creatable
-            getCreateLabel={(query) =>
-              validateUserShortCode(query) ? (
+            itemComponent={AllowedUsersMultiselectItem}
+            valueComponent={AllowedUserMultiselectValue}
+            getCreateLabel={(query) => {
+              let item = query;
+              if (item[0] === "@") {
+                item = item.slice(1);
+              }
+
+              return (
                 <span>
-                  Add #<b>{query}</b> to allowed users.
+                  Add @<b>{item}</b> to allowed users.
                 </span>
-              ) : (
-                <span className="text-red-600">
-                  #<b>{query}</b> is not a valid user code.
-                </span>
-              )
-            }
+              );
+            }}
             onCreate={(query) => {
-              const item = query;
-              if (!validateUserShortCode(item)) {
-                showNotification({
-                  title: (
-                    <span>
-                      #<b>{item}</b> is not a valid user code.
-                    </span>
-                  ),
-                  message: "Make sure the provided user code is valid.",
-                  color: "red",
-                });
-                return null;
+              let item = query;
+              if (item[0] === "@") {
+                item = item.slice(1);
               }
 
               setAllowedUsersData((current) => [...current, item]);

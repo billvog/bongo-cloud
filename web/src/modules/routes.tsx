@@ -11,7 +11,7 @@ import { NotFoundErrorPage } from "./common/errors/not-found";
 import { useAuth } from "./auth-context";
 // Other
 import { AboutPage } from "./common/about";
-import { SharedItemDownloadPage } from "./common/shared-item-download";
+import { SharedItemDownloadPage } from "./logged-in/shared-item-download";
 import { AccountPage } from "./logged-in/account";
 
 export const MyRoutes: React.FC = () => {
@@ -24,6 +24,10 @@ export const MyRoutes: React.FC = () => {
           <Route path="/" element={<Navigate to="/-/" />} />
           <Route path="/-/*" element={<MyFilesPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route
+            path="/share/:shareId/download"
+            element={<SharedItemDownloadPage />}
+          />
         </>
       ) : (
         // Not logged in
@@ -33,10 +37,6 @@ export const MyRoutes: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
         </>
       )}
-      <Route
-        path="/share/:shareId/download"
-        element={<SharedItemDownloadPage />}
-      />
       <Route path="/about" element={<AboutPage />} />
       <Route path="*" element={<NotFoundErrorPage />} />
     </Routes>

@@ -32,8 +32,6 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
     [isOpen]
   );
 
-  if (!isOpen) return null;
-
   return (
     <Modal
       opened={isOpen}

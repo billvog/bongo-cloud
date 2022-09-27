@@ -1,9 +1,7 @@
-import { ActionIcon, Menu, RingProgress, ThemeIcon } from "@mantine/core";
-import { showNotification, updateNotification } from "@mantine/notifications";
+import { ActionIcon, Menu } from "@mantine/core";
 import prettyBytes from "pretty-bytes";
 import React, { useState } from "react";
 import {
-  AiFillCheckCircle,
   AiFillFolder,
   AiOutlineDownload,
   AiOutlineInfoCircle,
@@ -13,13 +11,12 @@ import { HiOutlineDotsCircleHorizontal } from "react-icons/hi";
 import { IoShareOutline, IoTrash } from "react-icons/io5";
 import { VscOpenPreview } from "react-icons/vsc";
 import { FilesystemItem } from "../../../../types";
-import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { getIconForFile } from "../../../../utils/get-icon-for-file";
 import { getItemPreviewableKind } from "../../../../utils/previewable-item";
-import { apiDownloadFile } from "../../../api";
 import { PreviewModal } from "./preview-modal";
 import { RenameItemModal } from "./rename-item-modal";
 import { ShareItemModal } from "./share-item-modal";
+import { useDownloadItem } from "./use-download-item";
 import { useItemDeleteWithConfirmation } from "./use-item-delete-with-confirmation";
 import { useMoveItem } from "./use-move-item";
 
@@ -34,65 +31,17 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
 }) => {
   const moveItem = useMoveItem(item);
   const deleteItem = useItemDeleteWithConfirmation(item);
+  const downloadItem = useDownloadItem();
   const [previewModalOpen, setPreviewModelOpen] = useState(false);
   const [shareModalOpen, setShareModelOpen] = useState(false);
   const [renameModalOpen, setRenameModelOpen] = useState(false);
 
   const onDeleteClicked = () => deleteItem();
   const onMoveClicked = () => moveItem();
+  const onDownloadClicked = () => downloadItem(item);
   const onPreviewClicked = () => setPreviewModelOpen(true);
   const onShareClicked = () => setShareModelOpen(true);
   const onRenameClicked = () => setRenameModelOpen(true);
-
-  const onDownloadClicked = () => {
-    const download_loading_notif_id = "download_loading_notif_id:" + item.id;
-
-    const RingProgressComponent = (progress: number) => {
-      return (
-        <RingProgress
-          sections={[{ value: progress, color: "blue" }]}
-          size={40}
-        />
-      );
-    };
-
-    showNotification({
-      id: download_loading_notif_id,
-      title: "Downloading...",
-      message: `Download is starting...`,
-      icon: RingProgressComponent(0),
-      disallowClose: true,
-    });
-
-    apiDownloadFile(item, (xhr, total, recieved) => {
-      updateNotification({
-        id: download_loading_notif_id,
-        title: "Downloading...",
-        message: `"${item.name}" is downloading...`,
-        icon: RingProgressComponent((recieved / total) * 100),
-        autoClose: false,
-        onClose: () => {
-          xhr.abort();
-        },
-      });
-    })
-      .then(() => {
-        updateNotification({
-          id: download_loading_notif_id,
-          title: "Success",
-          message: `"${item.name}" is downloaded!`,
-          icon: (
-            <ThemeIcon color="teal" variant="light" radius="xl" size="md">
-              <AiFillCheckCircle size={22} />
-            </ThemeIcon>
-          ),
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        apiErrorNotification(download_loading_notif_id);
-      });
-  };
 
   const ItemIcon = item.is_file ? getIconForFile(item.name) : AiFillFolder;
 
