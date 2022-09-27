@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 
 from authentication.serializers import PublicUserSerializer
 from .models import (
@@ -174,6 +175,11 @@ class PublicFilesystemSharedItemSerializer(serializers.ModelSerializer):
 			'download_url'
 		]
 
+def validate_expiry(value):
+	if value is not None and value < timezone.now():
+		raise serializers.ValidationError("Please select a date and time that hasn't passed.")
+	return value
+
 class CreateFilesystemSharedItemSerializer(serializers.ModelSerializer):
 	item = FilesystemItemSerializer(read_only=True)
 	has_password = serializers.BooleanField(default=False, read_only=True)
@@ -196,6 +202,9 @@ class CreateFilesystemSharedItemSerializer(serializers.ModelSerializer):
 			raise serializers.ValidationError('Please provide a password.')
 		return value
 
+	def validate_expiry(self, value):
+		return validate_expiry(value)
+
 class UpdateFilesystemSharedItemSerializer(serializers.ModelSerializer):
 	has_password = serializers.BooleanField(default=False, read_only=True)
 	does_expire = serializers.BooleanField(default=False, read_only=True)
@@ -210,6 +219,9 @@ class UpdateFilesystemSharedItemSerializer(serializers.ModelSerializer):
 			'does_expire',
 			'expiry'
 		]
+
+	def validate_expiry(self, value):
+		return validate_expiry(value)
 
 class DownloadFilesystemSharedItemSerializer(serializers.Serializer):
 	password = serializers.CharField(required=False)

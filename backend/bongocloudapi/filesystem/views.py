@@ -193,6 +193,9 @@ class CreateFilesystemSharedItemAPIView(FilesystemItemOwnerPermissionsMixin, Cre
 		if item.is_shared():
 			return Response({ 'detail': 'This item is already shared.' }, status=status.HTTP_400_BAD_REQUEST)
 
+		if not item.is_file:
+			return Response({ 'detail': 'This item is not file.' }, status=status.HTTP_400_BAD_REQUEST)
+
 		user = request.user
 
 		serializer = self.get_serializer(data=request.data)
