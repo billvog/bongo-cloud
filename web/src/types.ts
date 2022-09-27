@@ -24,6 +24,7 @@ export type FilesystemItemEditable = {
   parent: string | null;
   name: string;
   path: string;
+  is_shared: boolean;
 };
 
 export type FilesystemSharedItem = {

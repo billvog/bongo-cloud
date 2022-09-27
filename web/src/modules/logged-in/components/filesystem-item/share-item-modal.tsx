@@ -16,11 +16,12 @@ import React, { forwardRef, useEffect, useState } from "react";
 import { BiTime } from "react-icons/bi";
 import { BsCalendarDate } from "react-icons/bs";
 import { IoMdLock } from "react-icons/io";
-import { useMutation, useQuery } from "react-query";
+import { useMutation } from "react-query";
 import { FilesystemItem, FilesystemSharedItem } from "../../../../types";
 import { apiErrorNotification } from "../../../../utils/api-error-update-notification";
 import { formatApiErrors } from "../../../../utils/format-api-errors";
 import { api, APIResponse } from "../../../api";
+import { useAPICache } from "../../../shared-hooks/use-api-cache";
 import { MyFieldset } from "../my-fieldset";
 
 const generateShareLink = (shareId: string) => {
@@ -109,36 +110,36 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
     },
   });
 
-  const sharedItemQuery = useQuery(
-    ["share", "item", item.id],
-    () => {
-      return api(`/filesystem/share/item/${item.id}/`);
-    },
-    { enabled: isUpdating, refetchOnMount: "always" }
-  );
-
   useEffect(
     () => {
-      if (sharedItemQuery.data && sharedItemQuery.data.ok) {
-        const data = sharedItemQuery.data.data;
-        setSharedItem(data);
-
-        setAllowedUsersData(data.allowed_users);
-        form.setFieldValue("allowed_users", data.allowed_users);
-
-        setHasPassword(data.has_password);
-
-        setExpires(data.does_expire);
-        if (data.expiry) {
-          const expiry = new Date(data.expiry);
-          form.setFieldValue("expiry_date", expiry);
-          form.setFieldValue("expiry_time", expiry);
-        }
+      if (!isUpdating) {
+        return;
       }
+
+      api(`/filesystem/share/item/${item.id}/`).then((data) => {
+        if (data.ok) {
+          const item = data.data;
+          setSharedItem(item);
+
+          setAllowedUsersData(item.allowed_users);
+          form.setFieldValue("allowed_users", item.allowed_users);
+
+          setHasPassword(item.has_password);
+
+          setExpires(item.does_expire);
+          if (item.expiry) {
+            const expiry = new Date(item.expiry);
+            form.setFieldValue("expiry_date", expiry);
+            form.setFieldValue("expiry_time", expiry);
+          }
+        }
+      });
     },
     // eslint-disable-next-line
-    [sharedItemQuery.data]
+    []
   );
+
+  const apiCache = useAPICache();
 
   const shareItemMutation = useMutation<
     APIResponse,
@@ -168,6 +169,11 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
             apiErrorNotification();
             return;
           }
+
+          apiCache.updateItem(item.id, item.parent, {
+            ...item,
+            is_shared: false,
+          });
 
           onClose();
           showNotification({
@@ -250,7 +256,12 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
                     apiErrorNotification(undefined, data.data.detail);
                   } else {
                     try {
-                      form.setErrors(formatApiErrors(data.data));
+                      const errors = formatApiErrors(data.data);
+                      form.setErrors(errors);
+                      if (errors.expiry) {
+                        form.setFieldError("expiry_date", errors.expiry);
+                        form.setFieldError("expiry_time", errors.expiry);
+                      }
                     } catch {
                       apiErrorNotification();
                     }
@@ -258,6 +269,11 @@ export const ShareItemModal: React.FC<ShareItemModalProps> = ({
 
                   return;
                 }
+
+                apiCache.updateItem(item.id, item.parent, {
+                  ...item,
+                  is_shared: true,
+                });
 
                 const sharedLink = generateShareLink(data.data.id);
                 clipboard.copy(sharedLink);

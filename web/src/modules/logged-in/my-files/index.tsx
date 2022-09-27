@@ -63,7 +63,7 @@ export const MyFilesPage: React.FC = () => {
         });
       };
 
-      api(`/filesystem/${encodedCurrentPath}/`)
+      api(`/filesystem/path/${encodedCurrentPath}/`)
         .then((response) => {
           if (response.ok) {
             setCurrentItemId(response.data.item?.id || null);
