@@ -6,16 +6,11 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
-from django.utils.crypto import get_random_string
 
 from .managers import UserManager
 
-def generate_random_code():
-	return get_random_string(6)
-
 class User(AbstractBaseUser, PermissionsMixin):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	short_code = models.CharField(max_length=10, default=generate_random_code, unique=True)
 	username = models.CharField(_('username'), max_length=50, unique=True)
 	email = models.EmailField(_('email'), unique=True)
 	gravatar_hash = models.CharField(_('gravatar hash'), max_length=40)
