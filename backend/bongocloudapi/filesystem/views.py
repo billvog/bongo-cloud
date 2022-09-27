@@ -11,8 +11,6 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password
 
-from authentication.serializers import UserSerializer
-
 from .models import FilesystemItem, FilesystemSharedItem
 from .serializers import (
 	CreateFilesystemItemSerializer,
@@ -35,11 +33,11 @@ User = get_user_model()
 MEDIA_ROOT = getattr(settings, 'MEDIA_ROOT', None)
 
 
-class FilesystemItemRetrieveAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
+class RetrieveFilesystemItemAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
 
-class FilesystemItemRetrieveFromPathAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
+class RetrieveFilesystemItemFromPathAPIView(FilesystemItemOwnerPermissionsMixin, RetrieveAPIView):
 	serializer_class = FilesystemItemSerializer
 
 	def retrieve(self, request, *args, **kwargs):
@@ -49,16 +47,13 @@ class FilesystemItemRetrieveFromPathAPIView(FilesystemItemOwnerPermissionsMixin,
 		item_data = item_serializer.data
 		return Response({ 'item': item_data })
 
-class FilesystemItemListAPIView(FilesystemItemOwnerPermissionsMixin, ListAPIView):
+class ListFilesystemItemAPIView(FilesystemItemOwnerPermissionsMixin, ListAPIView):
 	queryset = FilesystemItem.objects.all().order_by('is_file', 'name', '-created_at')
 	serializer_class = FilesystemItemSerializer
 
 	def list(self, request, *args, **kwargs):
 		if 'pk' in kwargs:
 			item = get_object_or_404(FilesystemItem, pk=kwargs['pk'])
-		elif 'path' in kwargs:
-			path = parse_url.unquote(kwargs['path'])
-			item = get_object_or_404(FilesystemItem, path=path)
 		else:
 			item = None
 
@@ -81,7 +76,7 @@ class FilesystemItemListAPIView(FilesystemItemOwnerPermissionsMixin, ListAPIView
 
 		return Response({ 'current': item_data, 'items': subitems_data })
 
-class FilesystemCreateAPIView(FilesystemItemOwnerPermissionsMixin, CreateAPIView):
+class CreateFilesystemItemAPIView(FilesystemItemOwnerPermissionsMixin, CreateAPIView):
 	serializer_class = CreateFilesystemItemSerializer
 
 	def post(self, request, *args, **kwargs):
@@ -118,7 +113,7 @@ class FilesystemCreateAPIView(FilesystemItemOwnerPermissionsMixin, CreateAPIView
 		headers = self.get_success_headers(serialized_item)
 		return Response(serialized_item, status=status.HTTP_201_CREATED, headers=headers)
 
-class FilesystemItemDestroyAPIView(FilesystemItemOwnerPermissionsMixin, DestroyAPIView):
+class DestroyFilesystemItemAPIView(FilesystemItemOwnerPermissionsMixin, DestroyAPIView):
 	queryset = FilesystemItem.objects.all()
 	serializer_class = FilesystemItemSerializer
 	
@@ -152,7 +147,7 @@ class RetrieveFilesystemSharedItemAPIVIew(
 
 		if item.is_expired():
 			item.delete()
-			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
+			return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 		serializer = self.get_serializer(item)
 		return Response(serializer.data)
@@ -247,7 +242,7 @@ class RetrieveFilesystemSharedItemFromItemIdAPIView(
 
 		if item.is_expired():
 			item.delete()
-			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
+			return Response(None, status=status.HTTP_404_NOT_FOUND)
 
 		serializer = self.get_serializer(item)
 		return Response(serializer.data)

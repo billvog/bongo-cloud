@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from authentication.serializers import PublicUserSerializer, UserSerializer
+from authentication.serializers import PublicUserSerializer
 from .models import (
 	FilesystemItem,
 	FilesystemSharedItem,
