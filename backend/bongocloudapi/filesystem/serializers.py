@@ -151,11 +151,11 @@ class FilesystemSharedItemSerializer(serializers.ModelSerializer):
 		]
 
 	def get_allowed_users(self, obj):
-		allowed_user_codes = []
+		allowed_user_names = []
 		allowed_users = obj.allowed_users.all()
 		for allowed_user in allowed_users:
-			allowed_user_codes.append(allowed_user.short_code)
-		return allowed_user_codes
+			allowed_user_names.append(allowed_user.username)
+		return allowed_user_names
 
 class PublicFilesystemSharedItemSerializer(serializers.ModelSerializer):
 	item = PublicFilesystemItemSerializer()

@@ -198,18 +198,22 @@ class CreateFilesystemSharedItemAPIView(FilesystemItemOwnerPermissionsMixin, Cre
 		if item.is_shared():
 			return Response({ 'detail': 'This item is already shared.' }, status=status.HTTP_400_BAD_REQUEST)
 
+		user = request.user
+
 		serializer = self.get_serializer(data=request.data)
 		data = serializer.initial_data
 
-		# find users from their short codes
 		allowed_users = []
 		if 'allowed_users' in data and len(data['allowed_users']) > 0:
 			for allowed_user in data['allowed_users']:
 				try:
-					u = get_object_or_404(User, short_code=allowed_user)
+					if allowed_user == user.username:
+						continue
+
+					u = get_object_or_404(User, username=allowed_user)
 					allowed_users.append(u.id)
 				except:
-					return Response({ 'detail': f'User with code "{allowed_user}" was not found.' }, status=status.HTTP_400_BAD_REQUEST)
+					return Response({ 'detail': f'User "{allowed_user}" was not found.' }, status=status.HTTP_400_BAD_REQUEST)
 		
 		data['allowed_users'] = allowed_users
 
@@ -267,19 +271,24 @@ class UpdateFilesystemSharedItemAPIView(
 			shared_item.delete()
 			return Response({ 'detail': 'Not found' }, status=status.HTTP_404_NOT_FOUND)
 
+		user = request.user
+
 		# init serializer
 		serializer = self.get_serializer(shared_item, data=request.data, partial=True)
 		data = serializer.initial_data
 
-		# find users from their short codes
+		# find users from their usernames
 		allowed_users = []
 		if 'allowed_users' in data and len(data['allowed_users']) > 0:
 			for allowed_user in data['allowed_users']:
 				try:
-					u = get_object_or_404(User, short_code=allowed_user)
+					if allowed_user == user.username:
+						continue
+
+					u = get_object_or_404(User, username=allowed_user)
 					allowed_users.append(u.id)
 				except:
-					return Response({ 'detail': f'User with code "{allowed_user}" was not found.' }, status=status.HTTP_400_BAD_REQUEST)
+					return Response({ 'detail': f'User "{allowed_user}" was not found.' }, status=status.HTTP_400_BAD_REQUEST)
 		
 		data['allowed_users'] = allowed_users
 
