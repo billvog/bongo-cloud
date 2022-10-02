@@ -92,7 +92,11 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <h2 className="mt-0">Sign in Your Bongo Account</h2>
-          <TextInput placeholder="Email" {...form.getInputProps("email")} />
+          <TextInput
+            placeholder="Email"
+            {...form.getInputProps("email")}
+            type="email"
+          />
           <PasswordInput
             placeholder="Password"
             {...form.getInputProps("password")}

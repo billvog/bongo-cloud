@@ -1,12 +1,13 @@
-import { Avatar } from "@mantine/core";
+import { Avatar, MantineNumberSize } from "@mantine/core";
 import React from "react";
 import { User } from "../../../types";
 
 interface UserAvatarProps {
   user: User;
+  size?: MantineNumberSize;
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
+export const UserAvatar: React.FC<UserAvatarProps> = ({ user, size }) => {
   const fullName = `${user.first_name} ${user.last_name}`;
 
   return (
@@ -14,6 +15,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
       src={null}
       alt={fullName}
       variant="filled"
+      size={size}
       radius="xl"
       color="orange"
     >

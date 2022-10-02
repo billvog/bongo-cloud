@@ -47,18 +47,22 @@ export const FilesystemItemComponent: React.FC<FilesystemItemProps> = ({
 
   return (
     <>
-      <div className="flex flex-row items-center justify-between px-4 py-2 bg-gray-50 hover:bg-gray-100 border-solid border-0 border-b border-b-gray-200">
-        <div
-          onClick={onClick}
-          className={`flex items-center space-x-2 w-3/4 text-gray-500 hover:text-gray-700 cursor-pointer ${
-            item.is_file ? "font-medium" : "font-bold"
-          }`}
-        >
-          <ItemIcon />
-          <div className="truncate">{item.name}</div>
+      <div className="flex flex-row items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 border-solid border-0 border-b border-b-gray-200">
+        <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mr-2 sm:w-[calc(100%-26px+8px)] w-3/4">
+          <div
+            onClick={onClick}
+            className={`flex items-center space-x-2 w-full sm:w-auto text-gray-500 hover:text-gray-700 cursor-pointer ${
+              item.is_file ? "font-medium" : "font-bold"
+            }`}
+          >
+            <ItemIcon />
+            <div className="truncate">{item.name}</div>
+          </div>
+          <div className="text-xs md:text-sm ml-6 sm:ml-0 font-bold text-gray-600">
+            {prettyBytes(item.size)}
+          </div>
         </div>
         <div className="flex flex-row items-center space-x-3">
-          <div className="text-sm">{prettyBytes(item.size)}</div>
           <div>
             <Menu position="left" withArrow>
               <Menu.Target>
